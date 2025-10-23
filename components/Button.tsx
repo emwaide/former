@@ -1,4 +1,5 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../theme';
 
 type ButtonVariant = 'primary' | 'secondary';
@@ -12,10 +13,51 @@ type ButtonProps = {
   accessibilityLabel?: string;
 };
 
-export const Button = ({ label, onPress, variant = 'primary', loading = false, disabled = false, accessibilityLabel }: ButtonProps) => {
+export const Button = ({
+  label,
+  onPress,
+  variant = 'primary',
+  loading = false,
+  disabled = false,
+  accessibilityLabel,
+}: ButtonProps) => {
   const { tokens } = useTheme();
-  const backgroundColor = variant === 'primary' ? tokens.colors.accentSecondary : tokens.colors.surface;
-  const textColor = variant === 'primary' ? tokens.colors.surface : tokens.colors.text;
+  const isPrimary = variant === 'primary';
+
+  if (!isPrimary) {
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel ?? label}
+        onPress={onPress}
+        disabled={disabled || loading}
+        android_ripple={{ color: tokens.colors.mutedBorder, borderless: false }}
+        style={({ pressed }) => [
+          styles.secondary,
+          {
+            borderColor: tokens.colors.mutedBorder,
+            opacity: disabled ? 0.6 : 1,
+            transform: [{ scale: pressed ? 0.98 : 1 }],
+          },
+        ]}
+      >
+        {loading ? (
+          <ActivityIndicator color={tokens.colors.textSecondary} />
+        ) : (
+          <Text
+            style={{
+              color: tokens.colors.text,
+              fontFamily: tokens.typography.fontFamilyMedium,
+              fontSize: tokens.typography.subheading,
+              lineHeight: 22,
+            }}
+          >
+            {label}
+          </Text>
+        )}
+      </Pressable>
+    );
+  }
 
   return (
     <Pressable
@@ -23,33 +65,66 @@ export const Button = ({ label, onPress, variant = 'primary', loading = false, d
       accessibilityLabel={accessibilityLabel ?? label}
       onPress={onPress}
       disabled={disabled || loading}
-      style={({ pressed }) => [
-        styles.button,
-        {
-          backgroundColor,
-          borderRadius: tokens.radius.pill,
-          borderWidth: variant === 'secondary' ? 1 : 0,
-          borderColor: variant === 'secondary' ? tokens.colors.mutedBorder : 'transparent',
-          opacity: disabled ? 0.6 : 1,
-        },
-        pressed && { transform: [{ scale: 0.98 }] },
-      ]}
+      style={styles.primaryWrapper}
     >
-      {loading ? <ActivityIndicator color={textColor} /> : <Text style={{ color: textColor, fontFamily: tokens.typography.fontFamilyAlt, fontSize: 16 }}>{label}</Text>}
+      {({ pressed }) => (
+        <LinearGradient
+          colors={tokens.colors.gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[
+            styles.primary,
+            {
+              opacity: disabled ? 0.6 : 1,
+              transform: [{ scale: pressed ? 0.98 : 1 }],
+              shadowColor: tokens.colors.softShadow,
+            },
+          ]}
+        >
+          {loading ? (
+            <ActivityIndicator color={tokens.colors.surface} />
+          ) : (
+            <Text
+              style={{
+                color: tokens.colors.surface,
+                fontFamily: tokens.typography.fontFamilyAlt,
+                fontSize: tokens.typography.subheading,
+                lineHeight: 24,
+              }}
+            >
+              {label}
+            </Text>
+          )}
+        </LinearGradient>
+      )}
     </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
-  button: {
-    minHeight: 48,
-    paddingHorizontal: 24,
+  primaryWrapper: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  primary: {
+    height: 48,
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: 'rgba(0,0,0,0.1)',
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 10,
-    shadowOpacity: 0.2,
+    borderRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 16,
     elevation: 4,
+  },
+  secondary: {
+    height: 48,
+    width: '100%',
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
   },
 });
