@@ -1,50 +1,112 @@
-# Welcome to your Expo app 👋
+# Former – Weight & Body Composition Tracker
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Former is an Expo + React Native experience focused on a calm, data-rich journey for weight loss and recomposition. The project is structured so the visual system, data hooks, and future backend integration stay cleanly separated.
 
-## Get started
+## Architecture overview
 
-1. Install dependencies
+- **App shell**: Expo Router with a stack root and bottom tabs (`app/_layout.tsx`, `app/(tabs)/*`). Each screen renders a `DashboardContent`-style component with polished layouts.
+- **Theming & tokens**: `theme/tokens.ts` defines the complete light/dark palettes, typography, radii, spacing, and motion values. `ThemeProvider` exposes a `useTheme()` hook for components to read tokens and toggle schemes.
+- **UI Kit**: Reusable primitives live in `components/` (Card, Screen, Stack, ProgressBar, Gauge, MiniLineChart, Chip, TextField, Button, etc.). Components accept tokens from `useTheme` and include accessibility props.
+- **Data layer**: Expo SQLite helpers in `db/init.ts` and `db/dao.ts` manage migrations and CRUD. `db/seed.ts` synthesises 12 weeks of demo readings for Emily.
+- **Hooks**: `hooks/useUser`, `useReadings`, and `useAnalytics` abstract database access and computed metrics so screens remain declarative.
+- **Metrics utilities**: `lib/metrics.ts` contains the conversion and analytic formulas requested (BMI, taper curve, muscle preservation score, hydration flag, etc.).
+- **Testing harness**: Lightweight runner in `tests/` compiles with TypeScript and validates metric behaviours plus analytic summaries without external dependencies.
 
-   ```bash
-   npm install
-   ```
+## File tree (key folders)
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+app/
+  _layout.tsx
+  (tabs)/
+    _layout.tsx
+    dashboard.tsx
+    trends.tsx
+    log.tsx
+    insights.tsx
+    settings.tsx
+components/
+  Button.tsx, Card.tsx, ... (UI kit)
+db/
+  init.ts, dao.ts, seed.ts
+hooks/
+  useUser.ts, useReadings.ts, useAnalytics.ts
+lib/
+  metrics.ts
+theme/
+  tokens.ts, ThemeProvider.tsx
+utils/
+  format.ts
+tests/
+  harness.ts, metrics.test.ts, dashboard.test.ts, run-tests.ts
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Theming & design tokens
 
-## Learn more
+- Palette anchors navy, sky, mint, cream, and coral with dark-mode complements.
+- Typography favours Poppins with dedicated numeric sizes for hero metrics.
+- Radii (24 card / 12 input / pill) and spacing scale (4…32) flow through every component.
+- Motion tokens keep tap feedback snappy (180–220ms) and cards softly elevated.
+- `useTheme()` exposes tokens plus a color scheme setter; Settings allows toggling modes.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Data model & SQLite
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- `db/init.ts` bootstraps the `users` and `readings` tables with indexes.
+- `db/dao.ts` offers CRUD helpers with optimistic insert support in `useReadings`.
+- `db/seed.ts` seeds Emily’s profile and 12 weeks of synthetic readings (weight, body fat %, muscle mass, hydration, etc.).
+- Hooks call DAO functions and memoise derived analytics so the UI can swap to a remote API later with minimal changes.
 
-## Join the community
+## UI kit highlights
 
-Join our community of developers creating universal apps.
+- **Screen**: Safe-area aware wrapper with optional scroll/padding.
+- **Card**: Shadowed surfaces with optional gradients and press states.
+- **Stack helpers**: `HStack`, `VStack`, `Spacer` for consistent spacing.
+- **Charts**: SVG-based `MiniLineChart` (actual vs predicted), `Gauge` (muscle score), `StackedBar` (fat vs lean).
+- **Inputs**: Token-aware `TextField`, `NumberField`, `Stepper`, `Chip` groups for filters and toggles.
+- **Feedback**: `ProgressBar`, `MetricNumber`, `EmptyState`, `Toast` for interaction cues.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Screens
+
+1. **Dashboard** – Greeting, goal progress, weekly change, actual vs predicted chart, and muscle preservation gauge.
+2. **Trends** – Range filter (7d/30d/12w), weight and composition charts, stacked fat vs lean by week.
+3. **Log** – Comprehensive form with unit toggle, inline validation, and optimistic inserts.
+4. **Insights** – Quick-glance cards (fat loss, hydration, muscle) and dose phase chips.
+5. **Settings** – Profile editor (name, sex, height, units, start/target weight) plus light/dark toggle.
+
+All screens respect ≥44pt hit targets, voice labels, and contrast requirements.
+
+## Running the project
+
+```bash
+# install dependencies (already vendored via package-lock)
+npm install
+
+# start the Expo dev server
+npm run dev
+```
+
+The first launch runs migrations and seeds demo data automatically via `initializeDatabase()` and `seedDemoData()`.
+
+## Testing
+
+A lightweight TypeScript harness validates the analytics:
+
+```bash
+npm test
+```
+
+This compiles the metrics and harness into `.tmp/tests` and executes the assertions (no external Jest dependency required in this sandboxed environment).
+
+## Database seeding
+
+Seeding occurs automatically on boot. The `npm run seed` script prints a reminder that no manual step is necessary. To reset data during development, delete the Expo SQLite file from your simulator/emulator.
+
+## Linting & maintenance
+
+- `npm run lint` – Expo lint rules for TypeScript/React Native.
+- `npm run check:all` – Unused code/dependency sweeps (Knip, ts-prune, depcheck).
+
+## Resetting
+
+Use `npm run reset-project` if you ever need the blank Expo starter again.
+
+Enjoy building on Former! Reach out if you need additional data providers or backend integrations.
