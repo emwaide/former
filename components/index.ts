@@ -1,4 +1,5 @@
 export * from './Button';
+export * from './BottomNav';
 export * from './Card';
 export * from './Chip';
 export * from './EmptyState';
