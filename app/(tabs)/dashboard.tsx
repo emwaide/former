@@ -1,7 +1,21 @@
 import { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Button, Screen, Heading, Card, ProgressBar, MetricNumber, Body, HStack, VStack, MiniLineChart, Gauge, EmptyState } from '../../components';
+import { Link, useRouter } from 'expo-router';
+import {
+  Button,
+  Screen,
+  Heading,
+  Card,
+  ProgressBar,
+  MetricNumber,
+  Body,
+  HStack,
+  VStack,
+  MiniLineChart,
+  Gauge,
+  EmptyState,
+  Icon,
+} from '../../components';
 import { useTheme } from '../../theme';
 import { useUser } from '../../hooks/useUser';
 import { useReadings } from '../../hooks/useReadings';
