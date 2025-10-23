@@ -1,0 +1,29 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "types": [
+      "react",
+      "react-native",
+      "node",
+      "./types/jest"
+    ],
+    "baseUrl": "./"
+  },
+  "include": [
+    "app",
+    "components",
+    "db",
+    "hooks",
+    "lib",
+    "scripts",
+    "theme",
+    "types",
+    "utils",
+    "__tests__",
+    "tests",
+    "metro.config.js",
+    "jest.config.js",
+    "jest.setup.ts"
+  ]
+}

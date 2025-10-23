@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "outDir": ".tmp/tests",
+    "module": "commonjs",
+    "target": "ES2019",
+    "jsx": "react",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "baseUrl": "./",
+    "types": [
+      "node",
+      "./types/jest"
+    ]
+  },
+  "include": [
+    "tests/**/*.ts",
+    "lib/**/*.ts",
+    "theme/**/*.ts",
+    "utils/**/*.ts",
+    "types/**/*.ts"
+  ],
+  "exclude": [
+    "lib/expenses.ts",
+    "lib/db.ts"
+  ]
+}
