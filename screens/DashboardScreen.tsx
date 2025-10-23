@@ -1,6 +1,9 @@
+import { ReactNode } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, Card, Icon, ProgressBar } from '../components';
+import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Circle } from 'react-native-svg';
+import { Button, Card, Icon } from '../components';
 import { useTheme } from '../theme';
 import { formatWeight, formatWeeklyChange } from '../utils/format';
 import { UnitSystem } from '../types/db';
@@ -47,6 +50,58 @@ const composeMomentumCaption = (weight: string, date?: string) => {
   return `Previously ${weight} on ${date}.`;
 };
 
+type ProgressRingProps = {
+  progress: number;
+  size?: number;
+  strokeWidth?: number;
+  trackColor: string;
+  progressColor: string;
+  children?: ReactNode;
+};
+
+const ProgressRing = ({
+  progress,
+  size = 200,
+  strokeWidth = 16,
+  trackColor,
+  progressColor,
+  children,
+}: ProgressRingProps) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const clamped = Math.max(0, Math.min(1, progress));
+  const strokeDashoffset = circumference * (1 - clamped);
+
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={trackColor}
+          strokeWidth={strokeWidth}
+          opacity={0.16}
+          fill="none"
+        />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={progressColor}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          fill="none"
+          strokeDasharray={`${circumference} ${circumference}`}
+          strokeDashoffset={strokeDashoffset}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        />
+      </Svg>
+      <View style={styles.progressCenter}>{children}</View>
+    </View>
+  );
+};
+
 const DashboardScreen = ({
   headerSubtitle,
   progressValue,
@@ -76,6 +131,7 @@ const DashboardScreen = ({
   const fatCurrent = fatCurrentPct ?? fatStartPct ?? 0;
   const fatLabel = formatCompositionDelta(fatStart, fatCurrent);
   const muscleLabel = `${muscleDescriptor(muscleScore)} (${Math.round(muscleScore)}/100)`;
+  const progressBadge = `${progressPercent}% to goal`;
 
   return (
     <View style={[styles.container, { backgroundColor: tokens.colors.background }]}>
@@ -83,62 +139,181 @@ const DashboardScreen = ({
         contentContainerStyle={[
           styles.content,
           {
-            paddingTop: 32 + insets.top,
-            paddingBottom: Math.max(32, insets.bottom + 64),
-            paddingHorizontal: 24,
+            paddingBottom: Math.max(32, insets.bottom + 48),
           },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Text
-            style={{
-              color: tokens.colors.text,
-              fontFamily: tokens.typography.fontFamilyAlt,
-              fontSize: tokens.typography.heading,
-              lineHeight: 30,
-            }}
+        <LinearGradient
+          colors={[tokens.colors.accentTertiary, tokens.colors.accent]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={[styles.hero, { paddingTop: insets.top + 32 }]}
+        >
+          <View style={styles.heroHeader}>
+            <Text
+              style={{
+                color: 'rgba(10, 45, 62, 0.72)',
+                fontFamily: tokens.typography.fontFamilyMedium,
+                fontSize: tokens.typography.caption,
+                textTransform: 'uppercase',
+                letterSpacing: 1,
+              }}
+            >
+              Your Progress
+            </Text>
+            <View
+              accessibilityLabel={`Progress badge: ${progressBadge}`}
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.65)',
+                borderRadius: tokens.radius.pill,
+                paddingHorizontal: 14,
+                paddingVertical: 6,
+              }}
+            >
+              <Text
+                style={{
+                  color: tokens.colors.accentSecondary,
+                  fontFamily: tokens.typography.fontFamilyMedium,
+                  fontSize: tokens.typography.caption,
+                }}
+              >
+                {progressBadge}
+              </Text>
+            </View>
+          </View>
+
+          <ProgressRing
+            progress={progressValue}
+            trackColor={tokens.colors.accentSecondary}
+            progressColor={tokens.colors.accentSecondary}
           >
-            Your Progress
-          </Text>
+            <Text
+              style={{
+                color: tokens.colors.accentSecondary,
+                fontFamily: tokens.typography.fontFamilyAlt,
+                fontSize: 48,
+                lineHeight: 52,
+              }}
+            >
+              {progressPercent}%
+            </Text>
+            <Text
+              style={{
+                color: tokens.colors.accentSecondary,
+                fontFamily: tokens.typography.fontFamilyMedium,
+                fontSize: tokens.typography.body,
+              }}
+            >
+              to goal
+            </Text>
+          </ProgressRing>
+
           <Text
             style={{
-              color: tokens.colors.textSecondary,
-              fontFamily: tokens.typography.fontFamilyMedium,
-              fontSize: tokens.typography.subheading,
-              lineHeight: 24,
+              color: 'rgba(10, 45, 62, 0.68)',
+              fontFamily: tokens.typography.fontFamily,
+              fontSize: tokens.typography.body,
+              textAlign: 'center',
+              lineHeight: 22,
             }}
           >
             {headerSubtitle}
           </Text>
-        </View>
+        </LinearGradient>
 
-        <Card accessibilityLabel={`Goal progress: ${progressPercent} percent complete.`} style={{ gap: 16 }}>
-          <View style={styles.progressRows}>
-            {[
-              { label: 'Start', value: startWeight },
-              { label: 'Current', value: currentWeight },
-              { label: 'Goal', value: goalWeight },
-            ].map((row) => (
-              <View key={row.label} style={styles.progressRow}>
+        <View style={styles.bodySection}>
+          <View style={styles.momentumSection}>
+            <Text
+              style={{
+                color: tokens.colors.textSecondary,
+                fontFamily: tokens.typography.fontFamilyMedium,
+                fontSize: tokens.typography.caption,
+                textTransform: 'uppercase',
+                letterSpacing: 1,
+              }}
+            >
+              Momentum
+            </Text>
+            <Text
+              style={{
+                color: tokens.colors.text,
+                fontFamily: tokens.typography.fontFamily,
+                fontSize: tokens.typography.body,
+                lineHeight: 22,
+              }}
+            >
+              {guidanceCopy}
+            </Text>
+          </View>
+
+          <Card
+            accessibilityLabel={`This week's change: ${weeklyChangeText}. ${momentumCaption}`}
+            style={[styles.weeklyCard, { backgroundColor: tokens.colors.card }]}
+          >
+            <View style={styles.weeklyHeader}>
+              <Text
+                style={{
+                  color: tokens.colors.textSecondary,
+                  fontFamily: tokens.typography.fontFamilyMedium,
+                  fontSize: tokens.typography.caption,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                }}
+              >
+                This Week's Change
+              </Text>
+              <View style={styles.weeklyBadge}>
                 <Text
                   style={{
-                    color: tokens.colors.textSecondary,
+                    color: tokens.colors.accent,
                     fontFamily: tokens.typography.fontFamilyMedium,
-                    fontSize: tokens.typography.body,
+                    fontSize: tokens.typography.caption,
                   }}
                 >
-                  {row.label}
+                  {weeklyChangeText}
                 </Text>
-                <View style={styles.progressValueGroup}>
-                  <View
+              </View>
+            </View>
+            <Text
+              style={{
+                color: tokens.colors.text,
+                fontFamily: tokens.typography.fontFamilyAlt,
+                fontSize: tokens.typography.numeric,
+                lineHeight: 36,
+              }}
+            >
+              {weeklyChangeText}
+            </Text>
+            <Text
+              style={{
+                color: tokens.colors.textSecondary,
+                fontFamily: tokens.typography.fontFamily,
+                fontSize: tokens.typography.body,
+                lineHeight: 20,
+              }}
+            >
+              {momentumCaption}
+            </Text>
+          </Card>
+
+          <View
+            accessibilityLabel={`Weight timeline. Start ${startWeight}. Current ${currentWeight}. Goal ${goalWeight}. ${headerSubtitle}`}
+            style={[styles.timelineCard, { backgroundColor: tokens.colors.contrastCard }]}
+          >
+            {[{ label: 'Start', value: startWeight }, { label: 'Current', value: currentWeight }, { label: 'Goal', value: goalWeight }].map(
+              (row) => (
+                <View key={row.label} style={styles.timelineRow}>
+                  <Text
                     style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: 3,
-                      backgroundColor: tokens.colors.accentSecondary,
+                      color: tokens.colors.textSecondary,
+                      fontFamily: tokens.typography.fontFamilyMedium,
+                      fontSize: tokens.typography.caption,
+                      textTransform: 'uppercase',
                     }}
-                  />
+                  >
+                    {row.label}
+                  </Text>
                   <Text
                     style={{
                       color: tokens.colors.text,
@@ -149,109 +324,61 @@ const DashboardScreen = ({
                     {row.value}
                   </Text>
                 </View>
-              </View>
-            ))}
+              ),
+            )}
           </View>
-          <ProgressBar value={progressValue} />
-          <Text
-            style={{
-              color: tokens.colors.textSecondary,
-              fontFamily: tokens.typography.fontFamily,
-              fontSize: tokens.typography.body,
-              lineHeight: 20,
-            }}
-          >
-            {guidanceCopy}
-          </Text>
-        </Card>
 
-        <Card
-          accessibilityLabel={`This week's change: ${weeklyChangeText}. ${momentumCaption}`}
-          style={{ gap: 12 }}
-        >
-          <Text
-            style={{
-              color: tokens.colors.textSecondary,
-              fontFamily: tokens.typography.fontFamilyMedium,
-              fontSize: tokens.typography.caption,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5,
-            }}
-          >
-            This week’s change
-          </Text>
-          <Text
-            style={{
-              color: tokens.colors.accent,
-              fontFamily: tokens.typography.fontFamilyAlt,
-              fontSize: 32,
-              lineHeight: 36,
-            }}
-          >
-            {weeklyChangeText}
-          </Text>
-          <Text
-            style={{
-              color: tokens.colors.textSecondary,
-              fontFamily: tokens.typography.fontFamily,
-              fontSize: tokens.typography.body,
-              lineHeight: 20,
-            }}
-          >
-            {momentumCaption}
-          </Text>
-        </Card>
+          <View style={styles.compositionRow}>
+            <Card accessibilityLabel={`Body composition update: ${fatLabel}.`} style={[styles.compositionCard, { backgroundColor: tokens.colors.card }]}>
+              <View style={[styles.compositionIcon, { backgroundColor: 'rgba(34, 87, 122, 0.12)' }]}>
+                <Icon name="trending-down" size={20} color={tokens.colors.accentSecondary} accessibilityLabel={fatLabel} />
+              </View>
+              <Text
+                style={{
+                  color: tokens.colors.text,
+                  fontFamily: tokens.typography.fontFamilyMedium,
+                  fontSize: tokens.typography.body,
+                }}
+              >
+                {fatLabel}
+              </Text>
+              <Text
+                style={{
+                  color: tokens.colors.textSecondary,
+                  fontFamily: tokens.typography.fontFamily,
+                  fontSize: tokens.typography.caption,
+                }}
+              >
+                vs start
+              </Text>
+            </Card>
+            <Card accessibilityLabel={`Muscle balance: ${muscleLabel}.`} style={[styles.compositionCard, { backgroundColor: tokens.colors.card }]}>
+              <View style={[styles.compositionIcon, { backgroundColor: 'rgba(34, 87, 122, 0.12)' }]}>
+                <Icon name="activity" size={20} color={tokens.colors.accentSecondary} accessibilityLabel={muscleLabel} />
+              </View>
+              <Text
+                style={{
+                  color: tokens.colors.text,
+                  fontFamily: tokens.typography.fontFamilyMedium,
+                  fontSize: tokens.typography.body,
+                }}
+              >
+                {muscleLabel}
+              </Text>
+              <Text
+                style={{
+                  color: tokens.colors.textSecondary,
+                  fontFamily: tokens.typography.fontFamily,
+                  fontSize: tokens.typography.caption,
+                }}
+              >
+                Strength trend
+              </Text>
+            </Card>
+          </View>
 
-        <View style={styles.compositionRow}>
-          <Card accessibilityLabel={`Body composition update: ${fatLabel}.`} style={[styles.compositionCard, { gap: 12 }]}>
-            <View style={styles.compositionIcon}>
-              <Icon name="trending-down" size={20} color={tokens.colors.accentSecondary} accessibilityLabel={fatLabel} />
-            </View>
-            <Text
-              style={{
-                color: tokens.colors.text,
-                fontFamily: tokens.typography.fontFamilyMedium,
-                fontSize: tokens.typography.body,
-              }}
-            >
-              {fatLabel}
-            </Text>
-            <Text
-              style={{
-                color: tokens.colors.textSecondary,
-                fontFamily: tokens.typography.fontFamily,
-                fontSize: tokens.typography.caption,
-              }}
-            >
-              vs start
-            </Text>
-          </Card>
-          <Card accessibilityLabel={`Muscle balance: ${muscleLabel}.`} style={[styles.compositionCard, { gap: 12 }]}>
-            <View style={styles.compositionIcon}>
-              <Icon name="activity" size={20} color={tokens.colors.accentSecondary} accessibilityLabel={muscleLabel} />
-            </View>
-            <Text
-              style={{
-                color: tokens.colors.text,
-                fontFamily: tokens.typography.fontFamilyMedium,
-                fontSize: tokens.typography.body,
-              }}
-            >
-              {muscleLabel}
-            </Text>
-            <Text
-              style={{
-                color: tokens.colors.textSecondary,
-                fontFamily: tokens.typography.fontFamily,
-                fontSize: tokens.typography.caption,
-              }}
-            >
-              Strength trend
-            </Text>
-          </Card>
+          <Button label="+ Log New Entry" onPress={onLogPress} accessibilityLabel="Log a new entry" />
         </View>
-
-        <Button label="+ Log New Entry" onPress={onLogPress} accessibilityLabel="Log a new entry" />
       </ScrollView>
     </View>
   );
@@ -267,21 +394,60 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     gap: 24,
   },
-  header: {
-    gap: 8,
+  hero: {
+    paddingHorizontal: 32,
+    paddingBottom: 48,
+    borderBottomLeftRadius: 36,
+    borderBottomRightRadius: 36,
+    gap: 24,
   },
-  progressRows: {
-    gap: 12,
-  },
-  progressRow: {
+  heroHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  progressValueGroup: {
+  progressCenter: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bodySection: {
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    gap: 24,
+  },
+  momentumSection: {
+    gap: 8,
+  },
+  weeklyCard: {
+    gap: 16,
+  },
+  weeklyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  weeklyBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: 'rgba(34, 87, 122, 0.12)',
+  },
+  timelineCard: {
+    borderRadius: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    gap: 16,
+    shadowColor: 'rgba(34, 87, 122, 0.12)',
+    shadowOpacity: 1,
+    shadowOffset: { width: 0, height: 12 },
+    shadowRadius: 28,
+    elevation: 4,
+  },
+  timelineRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
   },
   compositionRow: {
     flexDirection: 'row',
@@ -289,6 +455,7 @@ const styles = StyleSheet.create({
   },
   compositionCard: {
     flex: 1,
+    gap: 12,
   },
   compositionIcon: {
     width: 32,
@@ -296,6 +463,5 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(34, 87, 122, 0.08)',
   },
 });
