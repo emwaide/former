@@ -44,6 +44,18 @@ export const DashboardContent = ({ loading, user, readings, analytics }: Dashboa
   const latest = sortReadingsDesc(readings)[0];
   const weeklyChangeLabel = formatWeeklyChange(analytics.weeklyChangeKg, user.unitSystem);
 
+  const muscleDescriptor = (() => {
+    if (analytics.muscleScore >= 80) return 'Muscle thriving';
+    if (analytics.muscleScore >= 60) return 'Muscle steady';
+    if (analytics.muscleScore >= 40) return 'Muscle dipping';
+    return 'Muscle at risk';
+  })();
+
+  const fatTrend = analytics.fatLossPct > 0 ? `Fat ↓${analytics.fatLossPct.toFixed(1)}%` : 'Fat steady';
+  const compositionHeadline = `${muscleDescriptor} · ${fatTrend}`;
+  const latestFatPct = latest.bodyFatPct;
+  const latestMusclePct = latest.skeletalMusclePct;
+
   return (
     <Screen>
       <VStack spacing="xl">
@@ -97,17 +109,80 @@ export const DashboardContent = ({ loading, user, readings, analytics }: Dashboa
             </VStack>
           </Card>
         </HStack>
-
         <Card>
-          <HStack spacing="xl" align="center" justify="space-between">
-            <VStack spacing="sm" style={{ flex: 1 }}>
-              <Body weight="semibold" color={tokens.colors.textSecondary}>
-                Muscle Preservation
+          <VStack spacing="lg">
+            <Body weight="semibold" color={tokens.colors.textSecondary}>
+              Composition summary
+            </Body>
+            <VStack spacing="md">
+              <Body weight="semibold" color={tokens.colors.text}>
+                {compositionHeadline}
               </Body>
-              <Body>Steady effort keeps you strong.</Body>
+              <HStack spacing="lg" align="center" justify="space-between" style={{ flexWrap: 'wrap' }}>
+                <View
+                  style={{
+                    alignItems: 'center',
+                    paddingVertical: tokens.spacing.xs,
+                  }}
+                >
+                  <Gauge value={analytics.muscleScore} label="Muscle score" />
+                </View>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderRadius: tokens.radius.pill,
+                    borderWidth: 1,
+                    borderColor: tokens.colors.mutedBorder,
+                    backgroundColor: tokens.colors.surface,
+                    paddingVertical: tokens.spacing.xs,
+                    paddingHorizontal: tokens.spacing.md,
+                    gap: tokens.spacing.lg,
+                    minWidth: 180,
+                  }}
+                >
+                  <VStack spacing="xs" style={{ flex: 1 }} align="flex-start">
+                    <Body weight="semibold" color={tokens.colors.textSecondary} style={{ fontSize: 13 }}>
+                      Fat
+                    </Body>
+                    <Body weight="semibold" color={tokens.colors.text}>
+                      {latestFatPct.toFixed(1)}%
+                    </Body>
+                  </VStack>
+                  <View
+                    style={{
+                      width: 1,
+                      alignSelf: 'stretch',
+                      backgroundColor: tokens.colors.mutedBorder,
+                    }}
+                  />
+                  <VStack spacing="xs" style={{ flex: 1 }} align="flex-start">
+                    <Body weight="semibold" color={tokens.colors.textSecondary} style={{ fontSize: 13 }}>
+                      Muscle
+                    </Body>
+                    <Body weight="semibold" color={tokens.colors.text}>
+                      {latestMusclePct.toFixed(1)}%
+                    </Body>
+                  </VStack>
+                </View>
+              </HStack>
+              <Link
+                href="/(tabs)/trends"
+                style={{
+                  alignSelf: 'flex-start',
+                  paddingVertical: tokens.spacing.xs,
+                }}
+              >
+                <Body
+                  weight="semibold"
+                  color={tokens.colors.accentSecondary}
+                  style={{ textDecorationLine: 'underline' }}
+                >
+                  See full composition trends
+                </Body>
+              </Link>
             </VStack>
-            <Gauge value={analytics.muscleScore} label="Score" />
-          </HStack>
+          </VStack>
         </Card>
       </VStack>
     </Screen>
