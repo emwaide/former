@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
-  Pressable,
   View,
   useWindowDimensions,
 } from 'react-native';
@@ -22,6 +21,7 @@ import {
   MiniLineChart,
   Gauge,
   Button,
+  StackedBar,
   EmptyState,
 } from '../../components';
 import { useTheme } from '../../theme';
@@ -76,69 +76,6 @@ const countRecentLogs = (readings: Reading[]) => {
   return readings.filter((reading) => new Date(reading.takenAt) >= sevenDaysAgo).length;
 };
 
-const calculateLogStreak = (readings: Reading[]) => {
-  if (readings.length === 0) return 0;
-  const uniqueDays = Array.from(
-    new Set(
-      readings.map((reading) => {
-        const date = new Date(reading.takenAt);
-        const normalized = new Date(date);
-        normalized.setHours(0, 0, 0, 0);
-        return normalized.getTime();
-      }),
-    ),
-  ).sort((a, b) => b - a);
-
-  if (uniqueDays.length === 0) return 0;
-
-  let streak = 1;
-  for (let index = 1; index < uniqueDays.length; index += 1) {
-    const previousDay = uniqueDays[index - 1];
-    const currentDay = uniqueDays[index];
-    const difference = (previousDay - currentDay) / (1000 * 60 * 60 * 24);
-
-    if (difference === 1) {
-      streak += 1;
-    } else if (difference > 1) {
-      break;
-    }
-  }
-
-  return streak;
-};
-
-const buildEncouragementCopy = (
-  weeklyChangeKg: number,
-  weeklyChangeLabel: string,
-  hydrationLow: boolean,
-) => {
-  if (hydrationLow) {
-    return {
-      message: 'Hydration dipped this week — a glass before lunch keeps recovery on track.',
-      action: 'Log hydration',
-    };
-  }
-
-  if (weeklyChangeKg < -0.05) {
-    return {
-      message: `Down ${weeklyChangeLabel} this week — consistent effort is paying off.`,
-      action: 'Log new entry',
-    };
-  }
-
-  if (weeklyChangeKg > 0.05) {
-    return {
-      message: `Weight up ${weeklyChangeLabel.replace('+', '')} — peek at Trends for gentle tweaks.`,
-      action: 'Review trends',
-    };
-  }
-
-  return {
-    message: 'Weight is steady — keep logging to spot the subtle shifts.',
-    action: 'Log new entry',
-  };
-};
-
 const deriveChartPoints = (weights: number[], unitSystem: 'metric' | 'imperial') =>
   unitSystem === 'imperial' ? weights.map((value) => kgToLb(value)) : weights;
 
@@ -164,42 +101,6 @@ export default function DashboardScreen() {
   const weeklyChangeLabel = formatWeeklyChange(analytics.weeklyChangeKg, unitSystem);
   const progressPercent = Math.max(0, Math.min(100, Math.round(analytics.progressPercent * 100)));
   const logsThisWeek = countRecentLogs(readings);
-  const streakDays = calculateLogStreak(readings);
-
-  const encouragement = useMemo(
-    () => buildEncouragementCopy(analytics.weeklyChangeKg, weeklyChangeLabel, analytics.hydrationLow),
-    [analytics.hydrationLow, analytics.weeklyChangeKg, weeklyChangeLabel],
-  );
-
-  const encouragementButtonLabel = encouragement.action === 'Review trends' ? 'Open Trends' : encouragement.action;
-  const encouragementOnPress =
-    encouragement.action === 'Review trends'
-      ? () => router.push('/(tabs)/trends')
-      : () => router.push('/(tabs)/log');
-
-  const streakLabel =
-    streakDays > 1 ? `${streakDays}-day logging streak` : streakDays === 1 ? '1-day logging streak' : 'Log today to start your streak';
-
-  const loggingSupportMessage =
-    logsThisWeek > 0
-      ? `Logged ${logsThisWeek} day${logsThisWeek === 1 ? '' : 's'} this week — consistency protects muscle tone.`
-      : 'Log a reading this week to keep muscle insights fresh.';
-
-  const compositionHeadline = `${
-    analytics.muscleScore >= 75
-      ? 'Muscle steady'
-      : analytics.muscleScore <= 55
-      ? 'Muscle softening slightly'
-      : 'Muscle holding'
-  } · ${analytics.fatLossPct > 0 ? `Fat ↓${analytics.fatLossPct.toFixed(1)}%` : 'Fat steady'}`;
-
-  const compositionInsight =
-    analytics.muscleScore >= 75
-      ? 'Strength sessions are supporting tone — keep the rhythm.'
-      : analytics.muscleScore <= 55
-      ? 'Plan a resistance session to keep muscle engaged.'
-      : 'Maintain protein intake to keep muscle holding steady.';
-
 
   const chartWidth = useMemo(() => {
     const horizontalPadding = tokens.spacing.xl * 2;
@@ -210,6 +111,11 @@ export default function DashboardScreen() {
   const actualSeries = useMemo(
     () => deriveChartPoints(analytics.weeklyActualKg.map((point) => point.weightKg), unitSystem),
     [analytics.weeklyActualKg, unitSystem],
+  );
+
+  const predictedSeries = useMemo(
+    () => deriveChartPoints(analytics.predictedWeights.map((point) => point.targetWeightKg), unitSystem),
+    [analytics.predictedWeights, unitSystem],
   );
 
   const liveRegionMessage = !isLoading
@@ -334,132 +240,76 @@ export default function DashboardScreen() {
             </Card>
 
             <Card
-              accessibilityLabel={`Seven day weight trend. ${weeklyChangeLabel} this week.`}
+              accessibilityLabel="Seven day trend chart comparing actual weight and projected goal"
               style={{ flex: 1, minWidth: 200, gap: tokens.spacing.lg }}
             >
-              <VStack spacing="xs">
-                <Label weight="semibold">7-day weight trend</Label>
-                <Body color={tokens.colors.textSecondary}>Past week · latest point highlighted.</Body>
-              </VStack>
+              <Label weight="semibold">Weekly change chart</Label>
               <MiniLineChart
                 width={chartWidth}
                 height={140}
-                accessibilityLabel="Actual weight trend over the past 7 days"
-                series={[{ points: actualSeries.slice(-8), color: tokens.colors.accentSecondary }]}
+                accessibilityLabel="Weight trend over the past weeks"
+                series={[
+                  { points: actualSeries.slice(-8), color: tokens.colors.accentSecondary },
+                  { points: predictedSeries.slice(0, actualSeries.length).slice(-8), color: tokens.colors.accentTertiary, dashed: true },
+                ]}
               />
-              <Pressable
-                accessibilityRole="link"
-                accessibilityLabel="View full weight trends"
-                onPress={() => router.push('/(tabs)/trends')}
-                style={{ paddingVertical: tokens.spacing.xs }}
-              >
-                <Body weight="semibold" color={tokens.colors.accentSecondary}>
-                  View trends
-                </Body>
-              </Pressable>
+              <Body>Latest value highlighted — projections adjust with each log.</Body>
             </Card>
           </HStack>
         </Animated.View>
 
         <Animated.View style={{ opacity: fadeValues[3] }}>
           <Card
-            accessibilityLabel={`Body composition summary. Fat ${latest.bodyFatPct.toFixed(1)} percent. Muscle ${latest.skeletalMusclePct.toFixed(1)} percent. Muscle score ${analytics.muscleScore} out of 100.`}
-            style={{ gap: tokens.spacing.lg }}
+            accessibilityLabel={`Body composition summary. Fat ${latest.bodyFatPct.toFixed(1)} percent. Muscle ${latest.skeletalMusclePct.toFixed(1)} percent.`}
+            style={{ gap: tokens.spacing.xl }}
           >
-            <VStack spacing="sm">
-              <Label weight="semibold">Body composition</Label>
-              <Body>{compositionHeadline}</Body>
-            </VStack>
-            <HStack spacing="lg" align="center" justify="space-between" wrap>
+            <HStack spacing="lg" align="center" justify="space-between">
+              <VStack spacing="sm" style={{ flex: 1 }}>
+                <Label weight="semibold">Composition summary</Label>
+                <Body>
+                  Consistency compounds. You&apos;ve logged {logsThisWeek} days this week.
+                </Body>
+              </VStack>
               <Gauge value={analytics.muscleScore} label="Muscle score" />
-              <VStack spacing="sm" style={{ flex: 1, minWidth: 160 }}>
-                <Body>{compositionInsight}</Body>
-                <Body>{loggingSupportMessage}</Body>
+            </HStack>
+            <StackedBar data={analytics.composition.slice(-3)} width={chartWidth} height={128} />
+            <HStack spacing="lg" align="flex-start">
+              <VStack spacing="xs" style={{ flex: 1 }}>
+                <Body weight="semibold" color={tokens.colors.textSecondary}>
+                  Fat
+                </Body>
+                <MetricNumber style={{ fontSize: tokens.typography.subheading + 4 }}>
+                  {latest.bodyFatPct.toFixed(1)}%
+                </MetricNumber>
+                <Body>Steady decline keeps energy balanced.</Body>
+              </VStack>
+              <VStack spacing="xs" style={{ flex: 1 }}>
+                <Body weight="semibold" color={tokens.colors.textSecondary}>
+                  Muscle
+                </Body>
+                <MetricNumber style={{ fontSize: tokens.typography.subheading + 4 }}>
+                  {latest.skeletalMusclePct.toFixed(1)}%
+                </MetricNumber>
+                <Body>
+                  Hydration {analytics.hydrationLow ? 'needs attention' : 'looks steady'} — keep nurturing recovery.
+                </Body>
               </VStack>
             </HStack>
-            <HStack spacing="md" wrap>
-              <View
-                style={{
-                  backgroundColor: tokens.colors.surface,
-                  borderRadius: tokens.radius.input,
-                  borderWidth: 1,
-                  borderColor: tokens.colors.mutedBorder,
-                  paddingHorizontal: tokens.spacing.lg,
-                  paddingVertical: tokens.spacing.md,
-                  flexGrow: 1,
-                  minWidth: 140,
-                }}
-              >
-                <VStack spacing="xs">
-                  <Body weight="semibold" color={tokens.colors.text}>
-                    Body fat
-                  </Body>
-                  <MetricNumber style={{ fontSize: tokens.typography.subheading + 2 }}>
-                    {latest.bodyFatPct.toFixed(1)}%
-                  </MetricNumber>
-                  <Body color={tokens.colors.textSecondary}>Latest reading</Body>
-                </VStack>
-              </View>
-              <View
-                style={{
-                  backgroundColor: tokens.colors.surface,
-                  borderRadius: tokens.radius.input,
-                  borderWidth: 1,
-                  borderColor: tokens.colors.mutedBorder,
-                  paddingHorizontal: tokens.spacing.lg,
-                  paddingVertical: tokens.spacing.md,
-                  flexGrow: 1,
-                  minWidth: 140,
-                }}
-              >
-                <VStack spacing="xs">
-                  <Body weight="semibold" color={tokens.colors.text}>
-                    Muscle
-                  </Body>
-                  <MetricNumber style={{ fontSize: tokens.typography.subheading + 2 }}>
-                    {latest.skeletalMusclePct.toFixed(1)}%
-                  </MetricNumber>
-                  <Body color={tokens.colors.textSecondary}>Latest reading</Body>
-                </VStack>
-              </View>
-            </HStack>
-            <Pressable
-              accessibilityRole="link"
-              accessibilityLabel="See full composition trends"
-              onPress={() => router.push('/(tabs)/trends')}
-              style={{ paddingVertical: tokens.spacing.xs }}
-            >
-              <Body weight="semibold" color={tokens.colors.accentSecondary}>
-                See full composition trends
-              </Body>
-            </Pressable>
           </Card>
         </Animated.View>
 
         <Card
           gradient
           style={{ gap: tokens.spacing.lg }}
-          accessibilityLabel={`Encouragement. ${encouragement.message} ${streakDays > 0 ? `Current streak ${streakDays} days.` : ''}`}
+          accessibilityLabel="Encouragement. Keep logging and add a new entry."
         >
-          <HStack spacing="sm" align="center" wrap>
-            <View
-              style={{
-                backgroundColor: 'rgba(255,255,255,0.18)',
-                borderRadius: tokens.radius.pill,
-                paddingHorizontal: tokens.spacing.md,
-                paddingVertical: tokens.spacing.xs + 2,
-              }}
-            >
-              <Body color={tokens.colors.surface} weight="semibold">
-                {streakLabel}
-              </Body>
-            </View>
-          </HStack>
-          <Body color={tokens.colors.surface}>{encouragement.message}</Body>
+          <Body color={tokens.colors.surface}>
+            Logged! Your trend updates instantly. Capture another reading when you&apos;re ready.
+          </Body>
           <Button
-            label={encouragementButtonLabel}
-            accessibilityLabel={encouragementButtonLabel}
-            onPress={encouragementOnPress}
+            label="Log New Entry"
+            accessibilityLabel="Log a new entry"
+            onPress={() => router.push('/(tabs)/log')}
           />
         </Card>
       </VStack>
