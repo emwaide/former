@@ -1,18 +1,6 @@
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { Link } from 'expo-router';
-import {
-  Screen,
-  Heading,
-  Card,
-  ProgressBar,
-  MetricNumber,
-  Body,
-  HStack,
-  VStack,
-  MiniLineChart,
-  Gauge,
-  EmptyState,
-} from '../../components';
+import { useRouter } from 'expo-router';
+import { Button, Screen, Heading, Card, ProgressBar, MetricNumber, Body, HStack, VStack, MiniLineChart, Gauge, EmptyState } from '../../components';
 import { useTheme } from '../../theme';
 import { useUser } from '../../hooks/useUser';
 import { useReadings } from '../../hooks/useReadings';
@@ -29,6 +17,7 @@ type DashboardContentProps = {
 
 export const DashboardContent = ({ loading, user, readings, analytics }: DashboardContentProps) => {
   const { tokens } = useTheme();
+  const router = useRouter();
 
   if (loading) {
     return (
@@ -53,6 +42,7 @@ export const DashboardContent = ({ loading, user, readings, analytics }: Dashboa
   }
 
   const latest = sortReadingsDesc(readings)[0];
+  const weeklyChangeLabel = formatWeeklyChange(analytics.weeklyChangeKg, user.unitSystem);
 
   const muscleDescriptor = (() => {
     if (analytics.muscleScore >= 80) return 'Muscle thriving';
@@ -93,22 +83,30 @@ export const DashboardContent = ({ loading, user, readings, analytics }: Dashboa
             </VStack>
           </Card>
           <Card style={{ flex: 1, minWidth: 180 }}>
-            <Body weight="semibold" color={tokens.colors.textSecondary}>
-              Weight vs Predicted
-            </Body>
-            <MiniLineChart
-              series={[
-                {
-                  points: analytics.weeklyActualKg.map((point) => point.weightKg),
-                  color: tokens.colors.accentSecondary,
-                },
-                {
-                  points: analytics.predictedWeights.map((point) => point.targetWeightKg),
-                  color: tokens.colors.accentTertiary,
-                  dashed: true,
-                },
-              ]}
-            />
+            <VStack spacing="md">
+              <VStack spacing="xs">
+                <Body weight="semibold" color={tokens.colors.textSecondary}>
+                  Weekly change chart
+                </Body>
+                <Body color={tokens.colors.textSecondary}>Past 7 days · latest point highlighted</Body>
+              </VStack>
+              <MiniLineChart
+                series={[
+                  {
+                    points: analytics.weeklyActualKg.map((point) => point.weightKg),
+                    color: tokens.colors.accentSecondary,
+                  },
+                ]}
+                accessibilityLabel={`Weekly change chart showing ${weeklyChangeLabel} versus the prior week.`}
+              />
+              <Body>{`Weekly change ${weeklyChangeLabel} versus last week.`}</Body>
+              <Button
+                label="View trends"
+                variant="secondary"
+                onPress={() => router.push('/(tabs)/trends')}
+                accessibilityLabel="View detailed trends"
+              />
+            </VStack>
           </Card>
         </HStack>
         <Card>
