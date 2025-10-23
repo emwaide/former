@@ -26,7 +26,12 @@ const Loading = () => {
 
 const RootNavigator = () => {
   const [ready, setReady] = useState(false);
-  const [fontsLoaded] = useFonts({ Poppins_400Regular, Poppins_600SemiBold });
+  const [fontsLoaded] = useFonts({
+    Poppins_400Regular,
+    Poppins_600SemiBold,
+    Inter_400Regular: Poppins_400Regular,
+    Inter_500Medium: Poppins_600SemiBold,
+  });
 
   useEffect(() => {
     const prepare = async () => {
@@ -57,7 +62,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
         <RootNavigator />
       </ThemeProvider>
     </SafeAreaProvider>

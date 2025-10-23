@@ -1,5 +1,4 @@
-import { StyleSheet, View } from 'react-native';
-import { Body } from './Typography';
+import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../theme';
 
 type ProgressBarProps = {
@@ -10,12 +9,20 @@ type ProgressBarProps = {
 export const ProgressBar = ({ value, label }: ProgressBarProps) => {
   const { tokens } = useTheme();
   const clamped = Math.max(0, Math.min(1, value));
+
   return (
-    <View>
+    <View accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(clamped * 100) }}>
       {label ? (
-        <Body weight="semibold" color={tokens.colors.textSecondary} style={styles.label}>
+        <Text
+          style={{
+            marginBottom: 8,
+            color: tokens.colors.textSecondary,
+            fontFamily: tokens.typography.fontFamilyMedium,
+            fontSize: tokens.typography.caption,
+          }}
+        >
           {label}
-        </Body>
+        </Text>
       ) : null}
       <View
         style={[
@@ -25,8 +32,6 @@ export const ProgressBar = ({ value, label }: ProgressBarProps) => {
             borderRadius: tokens.radius.pill,
           },
         ]}
-        accessibilityRole="progressbar"
-        accessibilityValue={{ min: 0, max: 100, now: Math.round(clamped * 100) }}
       >
         <View
           style={[
@@ -44,11 +49,8 @@ export const ProgressBar = ({ value, label }: ProgressBarProps) => {
 };
 
 const styles = StyleSheet.create({
-  label: {
-    marginBottom: 8,
-  },
   track: {
-    height: 16,
+    height: 12,
     overflow: 'hidden',
   },
   fill: {

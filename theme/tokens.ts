@@ -1,5 +1,7 @@
 import { createContext, useContext, useMemo } from 'react';
 import { ColorSchemeName } from 'react-native';
+import { beachCalmColors } from './colors';
+import { beachCalmTypography } from './typography';
 
 export type ColorTokens = {
   background: string;
@@ -17,11 +19,13 @@ export type ColorTokens = {
   border: string;
   mutedBorder: string;
   shadow: string;
+  softShadow: string;
   gradient: [string, string];
 };
 
 export type TypographyTokens = {
   fontFamily: string;
+  fontFamilyMedium: string;
   fontFamilyAlt: string;
   heading: number;
   subheading: number;
@@ -57,25 +61,29 @@ export type ThemeTokens = {
   motion: MotionTokens;
 };
 
+const palette = beachCalmColors;
+const typographyScale = beachCalmTypography;
+
 export const lightTokens: ThemeTokens = {
   mode: 'light',
   colors: {
-    background: '#F8F7F3',
-    surface: '#FFFFFF',
-    card: '#F3DFBF',
-    contrastCard: '#07004D',
-    text: '#07004D',
-    textSecondary: 'rgba(7, 0, 77, 0.7)',
-    accent: '#42E2B8',
-    accentSecondary: '#2D82B7',
-    accentTertiary: '#EB8A90',
-    success: '#42E2B8',
-    warning: '#EB8A90',
-    danger: '#EB8A90',
-    border: 'rgba(7, 0, 77, 0.12)',
-    mutedBorder: 'rgba(7, 0, 77, 0.08)',
-    shadow: 'rgba(7, 0, 77, 0.15)',
-    gradient: ['#42E2B8', '#2D82B7'],
+    background: palette.background,
+    surface: palette.card,
+    card: palette.card,
+    contrastCard: '#E6F1FA',
+    text: palette.textPrimary,
+    textSecondary: palette.textSecondary,
+    accent: palette.primary,
+    accentSecondary: palette.primaryDeep,
+    accentTertiary: palette.seafoam,
+    success: palette.success,
+    warning: palette.warning,
+    danger: palette.error,
+    border: palette.divider,
+    mutedBorder: '#EEF2F6',
+    shadow: palette.shadowSoft,
+    softShadow: palette.shadowTint,
+    gradient: [palette.primaryDeep, palette.primary],
   },
   spacing: {
     xs: 4,
@@ -86,26 +94,27 @@ export const lightTokens: ThemeTokens = {
     '2xl': 32,
   },
   radius: {
-    card: 24,
+    card: 16,
     input: 12,
     pill: 999,
   },
   typography: {
-    fontFamily: 'Poppins_400Regular',
+    fontFamily: 'Inter_400Regular',
+    fontFamilyMedium: 'Inter_500Medium',
     fontFamilyAlt: 'Poppins_600SemiBold',
-    heading: 28,
-    subheading: 22,
-    body: 16,
-    label: 13,
-    caption: 11,
-    numeric: 48,
+    heading: typographyScale.heading.fontSize,
+    subheading: typographyScale.subheading.fontSize,
+    body: typographyScale.body.fontSize,
+    label: typographyScale.body.fontSize,
+    caption: typographyScale.caption.fontSize,
+    numeric: 32,
   },
   motion: {
     durationFast: 180,
-    durationBase: 220,
+    durationBase: 240,
     easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
     springConfig: {
-      damping: 18,
+      damping: 20,
       stiffness: 180,
       mass: 1,
     },
@@ -116,22 +125,23 @@ export const darkTokens: ThemeTokens = {
   ...lightTokens,
   mode: 'dark',
   colors: {
-    background: '#050032',
-    surface: '#07004D',
-    card: '#1A1740',
-    contrastCard: '#F3DFBF',
-    text: '#F8F7F3',
-    textSecondary: 'rgba(248, 247, 243, 0.7)',
-    accent: '#42E2B8',
-    accentSecondary: '#2D82B7',
-    accentTertiary: '#EB8A90',
-    success: '#42E2B8',
-    warning: '#EB8A90',
-    danger: '#EB8A90',
-    border: 'rgba(248, 247, 243, 0.14)',
-    mutedBorder: 'rgba(248, 247, 243, 0.08)',
-    shadow: 'rgba(0, 0, 0, 0.4)',
-    gradient: ['#2D82B7', '#07004D'],
+    background: '#0B1D2C',
+    surface: '#132A3F',
+    card: '#132A3F',
+    contrastCard: '#1F3D58',
+    text: '#F1F5F9',
+    textSecondary: 'rgba(241, 245, 249, 0.72)',
+    accent: palette.primary,
+    accentSecondary: palette.primary,
+    accentTertiary: palette.seafoam,
+    success: palette.success,
+    warning: palette.warning,
+    danger: palette.error,
+    border: 'rgba(148, 163, 184, 0.28)',
+    mutedBorder: 'rgba(148, 163, 184, 0.18)',
+    shadow: 'rgba(0, 0, 0, 0.35)',
+    softShadow: 'rgba(34, 87, 122, 0.35)',
+    gradient: [palette.primaryDeep, palette.primary],
   },
 };
 
