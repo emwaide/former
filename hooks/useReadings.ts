@@ -23,11 +23,18 @@ export const useReadings = (userId?: string) => {
         id: `temp-${Date.now()}`,
       } as Reading;
       setReadings((prev) => [...prev, optimistic]);
-      const created = await createReading({ ...input, userId });
-      if (created) {
-        setReadings((prev) => prev.filter((r) => r.id !== optimistic.id).concat(created));
+      try {
+        const created = await createReading({ ...input, userId });
+        if (created) {
+          setReadings((prev) => prev.filter((r) => r.id !== optimistic.id).concat(created));
+        } else {
+          setReadings((prev) => prev.filter((r) => r.id !== optimistic.id));
+        }
+        return created;
+      } catch (error) {
+        setReadings((prev) => prev.filter((r) => r.id !== optimistic.id));
+        throw error;
       }
-      return created;
     },
     [userId],
   );
