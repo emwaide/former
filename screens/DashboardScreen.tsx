@@ -55,6 +55,7 @@ type ProgressRingProps = {
   size?: number;
   strokeWidth?: number;
   trackColor: string;
+  trackOpacity?: number;
   progressColor: string;
   children?: ReactNode;
 };
@@ -64,6 +65,7 @@ const ProgressRing = ({
   size = 200,
   strokeWidth = 16,
   trackColor,
+  trackOpacity = 0.16,
   progressColor,
   children,
 }: ProgressRingProps) => {
@@ -81,7 +83,7 @@ const ProgressRing = ({
           r={radius}
           stroke={trackColor}
           strokeWidth={strokeWidth}
-          opacity={0.16}
+          opacity={trackOpacity}
           fill="none"
         />
         <Circle
@@ -130,8 +132,22 @@ const DashboardScreen = ({
   const fatStart = fatStartPct ?? fatCurrentPct ?? 0;
   const fatCurrent = fatCurrentPct ?? fatStartPct ?? 0;
   const fatLabel = formatCompositionDelta(fatStart, fatCurrent);
-  const muscleLabel = `${muscleDescriptor(muscleScore)} (${Math.round(muscleScore)}/100)`;
+  const muscleStatus = muscleDescriptor(muscleScore);
+  const muscleScoreLabel = `${Math.round(muscleScore)}/100`;
+  const muscleLabel = `${muscleStatus} (${muscleScoreLabel})`;
   const progressBadge = `${progressPercent}% to goal`;
+  const heroSubline = `Currently ${currentWeight} — aiming for ${goalWeight}`;
+  const timelineProgress = Math.min(100, Math.max(0, progressPercent));
+  const timelineSteps = [
+    { label: 'Start', value: startWeight },
+    { label: 'Now', value: currentWeight },
+    { label: 'Goal', value: goalWeight },
+  ];
+  const hasFatStart = typeof fatStartPct === 'number';
+  const hasFatCurrent = typeof fatCurrentPct === 'number';
+  const safeFatStart = Math.max(0, Math.min(100, hasFatStart ? fatStartPct! : fatStart));
+  const safeFatCurrent = Math.max(0, Math.min(100, hasFatCurrent ? fatCurrentPct! : fatCurrent));
+  const muscleNormalized = Math.min(1, Math.max(0, muscleScore / 100));
 
   return (
     <View style={[styles.container, { backgroundColor: tokens.colors.background }]}>
@@ -145,19 +161,27 @@ const DashboardScreen = ({
         showsVerticalScrollIndicator={false}
       >
         <LinearGradient
-          colors={[tokens.colors.accentTertiary, tokens.colors.accent]}
+          colors={['#F2F7FF', '#DCEAFF', '#B8D8FF']}
+          locations={[0, 0.55, 1]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={[styles.hero, { paddingTop: insets.top + 32 }]}
         >
+          <LinearGradient
+            pointerEvents="none"
+            colors={['rgba(255, 255, 255, 0.78)', 'rgba(255, 255, 255, 0)']}
+            start={{ x: 0.2, y: 0 }}
+            end={{ x: 0.8, y: 1 }}
+            style={styles.heroHighlight}
+          />
           <View style={styles.heroHeader}>
             <Text
               style={{
-                color: 'rgba(10, 45, 62, 0.72)',
+                color: 'rgba(23, 51, 74, 0.8)',
                 fontFamily: tokens.typography.fontFamilyMedium,
                 fontSize: tokens.typography.caption,
                 textTransform: 'uppercase',
-                letterSpacing: 1,
+                letterSpacing: 1.6,
               }}
             >
               Your Progress
@@ -165,10 +189,10 @@ const DashboardScreen = ({
             <View
               accessibilityLabel={`Progress badge: ${progressBadge}`}
               style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.65)',
+                backgroundColor: 'rgba(255, 255, 255, 0.72)',
                 borderRadius: tokens.radius.pill,
-                paddingHorizontal: 14,
-                paddingVertical: 6,
+                paddingHorizontal: 16,
+                paddingVertical: 8,
               }}
             >
               <Text
@@ -176,6 +200,7 @@ const DashboardScreen = ({
                   color: tokens.colors.accentSecondary,
                   fontFamily: tokens.typography.fontFamilyMedium,
                   fontSize: tokens.typography.caption,
+                  letterSpacing: 0.4,
                 }}
               >
                 {progressBadge}
@@ -185,15 +210,17 @@ const DashboardScreen = ({
 
           <ProgressRing
             progress={progressValue}
-            trackColor={tokens.colors.accentSecondary}
+            trackColor="rgba(34, 87, 122, 0.18)"
+            trackOpacity={1}
             progressColor={tokens.colors.accentSecondary}
           >
             <Text
               style={{
                 color: tokens.colors.accentSecondary,
                 fontFamily: tokens.typography.fontFamilyAlt,
-                fontSize: 48,
-                lineHeight: 52,
+                fontSize: 52,
+                lineHeight: 56,
+                letterSpacing: -0.5,
               }}
             >
               {progressPercent}%
@@ -203,23 +230,70 @@ const DashboardScreen = ({
                 color: tokens.colors.accentSecondary,
                 fontFamily: tokens.typography.fontFamilyMedium,
                 fontSize: tokens.typography.body,
+                letterSpacing: 1,
               }}
             >
               to goal
             </Text>
           </ProgressRing>
 
-          <Text
-            style={{
-              color: 'rgba(10, 45, 62, 0.68)',
-              fontFamily: tokens.typography.fontFamily,
-              fontSize: tokens.typography.body,
-              textAlign: 'center',
-              lineHeight: 22,
-            }}
-          >
-            {headerSubtitle}
-          </Text>
+          <View style={styles.heroCopy}>
+            <Text
+              style={{
+                color: 'rgba(23, 51, 74, 0.86)',
+                fontFamily: tokens.typography.fontFamilyAlt,
+                fontSize: 20,
+                lineHeight: 26,
+                textAlign: 'center',
+                letterSpacing: -0.2,
+              }}
+            >
+              {headerSubtitle}
+            </Text>
+            <Text
+              style={{
+                color: 'rgba(23, 51, 74, 0.6)',
+                fontFamily: tokens.typography.fontFamily,
+                fontSize: tokens.typography.caption,
+                textAlign: 'center',
+                letterSpacing: 0.4,
+              }}
+            >
+              {heroSubline}
+            </Text>
+          </View>
+
+          <View style={styles.heroStatsRow}>
+            {[
+              { label: 'Start', value: startWeight },
+              { label: 'Now', value: currentWeight },
+              { label: 'Goal', value: goalWeight },
+            ].map((item) => (
+              <View key={item.label} style={styles.heroStat}>
+                <Text
+                  style={{
+                    color: 'rgba(23, 51, 74, 0.55)',
+                    fontFamily: tokens.typography.fontFamilyMedium,
+                    fontSize: tokens.typography.caption,
+                    textTransform: 'uppercase',
+                    letterSpacing: 1,
+                  }}
+                >
+                  {item.label}
+                </Text>
+                <Text
+                  style={{
+                    color: tokens.colors.accentSecondary,
+                    fontFamily: tokens.typography.fontFamilyAlt,
+                    fontSize: tokens.typography.body,
+                    letterSpacing: 0.4,
+                  }}
+                >
+                  {item.value}
+                </Text>
+              </View>
+            ))}
+          </View>
         </LinearGradient>
 
         <View style={styles.bodySection}>
@@ -297,13 +371,59 @@ const DashboardScreen = ({
             </Text>
           </Card>
 
-          <View
+          <Card
             accessibilityLabel={`Weight timeline. Start ${startWeight}. Current ${currentWeight}. Goal ${goalWeight}. ${headerSubtitle}`}
-            style={[styles.timelineCard, { backgroundColor: tokens.colors.contrastCard }]}
+            style={[styles.timelineCard, { backgroundColor: tokens.colors.card }]}
           >
-            {[{ label: 'Start', value: startWeight }, { label: 'Current', value: currentWeight }, { label: 'Goal', value: goalWeight }].map(
-              (row) => (
-                <View key={row.label} style={styles.timelineRow}>
+            <View style={styles.timelineHeader}>
+              <Text
+                style={{
+                  color: tokens.colors.textSecondary,
+                  fontFamily: tokens.typography.fontFamilyMedium,
+                  fontSize: tokens.typography.caption,
+                  letterSpacing: 0.5,
+                }}
+              >
+                Weight Journey
+              </Text>
+              <Text
+                style={{
+                  color: tokens.colors.textSecondary,
+                  fontFamily: tokens.typography.fontFamily,
+                  fontSize: tokens.typography.caption,
+                }}
+              >
+                Goal {goalWeight}
+              </Text>
+            </View>
+
+            <View style={styles.timelineTrackWrapper}>
+              <View style={[styles.timelineTrackBackground, { backgroundColor: 'rgba(34, 87, 122, 0.16)' }]} />
+              <View
+                style={[
+                  styles.timelineTrackFill,
+                  { width: `${timelineProgress}%`, backgroundColor: tokens.colors.accentSecondary },
+                ]}
+              />
+              <View style={styles.timelineMarkersRow}>
+                {timelineSteps.map((step, index) => (
+                  <View key={step.label} style={styles.timelineMarker}>
+                    <View
+                      style={[
+                        styles.timelineDot,
+                        index === 0 && styles.timelineDotStart,
+                        index === timelineSteps.length - 1 && styles.timelineDotGoal,
+                        index === 1 && styles.timelineDotCurrent,
+                      ]}
+                    />
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.timelineValues}>
+              {timelineSteps.map((row) => (
+                <View key={row.label} style={styles.timelineValue}>
                   <Text
                     style={{
                       color: tokens.colors.textSecondary,
@@ -317,63 +437,159 @@ const DashboardScreen = ({
                   <Text
                     style={{
                       color: tokens.colors.text,
-                      fontFamily: tokens.typography.fontFamilyMedium,
+                      fontFamily: tokens.typography.fontFamilyAlt,
                       fontSize: tokens.typography.body,
                     }}
                   >
                     {row.value}
                   </Text>
                 </View>
-              ),
-            )}
-          </View>
+              ))}
+            </View>
+          </Card>
 
           <View style={styles.compositionRow}>
-            <Card accessibilityLabel={`Body composition update: ${fatLabel}.`} style={[styles.compositionCard, { backgroundColor: tokens.colors.card }]}>
-              <View style={[styles.compositionIcon, { backgroundColor: 'rgba(34, 87, 122, 0.12)' }]}>
-                <Icon name="trending-down" size={20} color={tokens.colors.accentSecondary} accessibilityLabel={fatLabel} />
+            <Card
+              accessibilityLabel={`Body composition update: ${fatLabel}.`}
+              style={[styles.compositionCard, { backgroundColor: tokens.colors.card }]}
+            >
+              <LinearGradient
+                pointerEvents="none"
+                colors={['rgba(34, 87, 122, 0.16)', 'rgba(34, 87, 122, 0)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.compositionGradient}
+              />
+              <View style={styles.compositionHeader}>
+                <View style={[styles.compositionIcon, { backgroundColor: 'rgba(34, 87, 122, 0.12)' }]}> 
+                  <Icon name="trending-down" size={20} color={tokens.colors.accentSecondary} accessibilityLabel={fatLabel} />
+                </View>
+                <Text
+                  style={{
+                    color: tokens.colors.textSecondary,
+                    fontFamily: tokens.typography.fontFamilyMedium,
+                    fontSize: tokens.typography.caption,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.8,
+                  }}
+                >
+                  Body Fat
+                </Text>
               </View>
               <Text
                 style={{
                   color: tokens.colors.text,
-                  fontFamily: tokens.typography.fontFamilyMedium,
+                  fontFamily: tokens.typography.fontFamilyAlt,
                   fontSize: tokens.typography.body,
                 }}
               >
                 {fatLabel}
               </Text>
-              <Text
-                style={{
-                  color: tokens.colors.textSecondary,
-                  fontFamily: tokens.typography.fontFamily,
-                  fontSize: tokens.typography.caption,
-                }}
-              >
-                vs start
-              </Text>
+              <View style={styles.compositionMeter}>
+                <View style={[styles.compositionMeterTrack, { backgroundColor: 'rgba(34, 87, 122, 0.16)' }]}> 
+                  <View
+                    style={[
+                      styles.compositionMeterFill,
+                      {
+                        width: `${Math.min(100, Math.max(0, safeFatCurrent))}%`,
+                        backgroundColor: tokens.colors.accentSecondary,
+                      },
+                    ]}
+                  />
+                </View>
+                <View style={styles.compositionMeterMeta}>
+                  <Text
+                    style={{
+                      color: tokens.colors.text,
+                      fontFamily: tokens.typography.fontFamilyMedium,
+                      fontSize: tokens.typography.caption,
+                    }}
+                  >
+                    Current {safeFatCurrent.toFixed(1)}%
+                  </Text>
+                  {hasFatStart && (
+                    <Text
+                      style={{
+                        color: tokens.colors.textSecondary,
+                        fontFamily: tokens.typography.fontFamily,
+                        fontSize: tokens.typography.caption,
+                      }}
+                    >
+                      Start {safeFatStart.toFixed(1)}%
+                    </Text>
+                  )}
+                </View>
+              </View>
             </Card>
-            <Card accessibilityLabel={`Muscle balance: ${muscleLabel}.`} style={[styles.compositionCard, { backgroundColor: tokens.colors.card }]}>
-              <View style={[styles.compositionIcon, { backgroundColor: 'rgba(34, 87, 122, 0.12)' }]}>
-                <Icon name="activity" size={20} color={tokens.colors.accentSecondary} accessibilityLabel={muscleLabel} />
+            <Card
+              accessibilityLabel={`Muscle balance: ${muscleLabel}.`}
+              style={[styles.compositionCard, { backgroundColor: tokens.colors.card }]}
+            >
+              <LinearGradient
+                pointerEvents="none"
+                colors={['rgba(8, 107, 167, 0.18)', 'rgba(8, 107, 167, 0)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.compositionGradient}
+              />
+              <View style={styles.compositionHeader}>
+                <View style={[styles.compositionIcon, { backgroundColor: 'rgba(34, 87, 122, 0.12)' }]}> 
+                  <Icon name="activity" size={20} color={tokens.colors.accentSecondary} accessibilityLabel={muscleLabel} />
+                </View>
+                <Text
+                  style={{
+                    color: tokens.colors.textSecondary,
+                    fontFamily: tokens.typography.fontFamilyMedium,
+                    fontSize: tokens.typography.caption,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.8,
+                  }}
+                >
+                  Muscle Tone
+                </Text>
               </View>
               <Text
                 style={{
                   color: tokens.colors.text,
-                  fontFamily: tokens.typography.fontFamilyMedium,
+                  fontFamily: tokens.typography.fontFamilyAlt,
                   fontSize: tokens.typography.body,
                 }}
               >
-                {muscleLabel}
+                {muscleStatus}
               </Text>
-              <Text
-                style={{
-                  color: tokens.colors.textSecondary,
-                  fontFamily: tokens.typography.fontFamily,
-                  fontSize: tokens.typography.caption,
-                }}
-              >
-                Strength trend
-              </Text>
+              <View style={styles.compositionMeter}>
+                <View style={[styles.compositionMeterTrack, { backgroundColor: 'rgba(34, 87, 122, 0.16)' }]}> 
+                  <View
+                    style={[
+                      styles.compositionMeterFill,
+                      {
+                        width: `${Math.round(muscleNormalized * 100)}%`,
+                        backgroundColor: tokens.colors.accentSecondary,
+                      },
+                    ]}
+                  />
+                </View>
+                <View style={styles.compositionMeterMeta}>
+                  <Text
+                    style={{
+                      color: tokens.colors.text,
+                      fontFamily: tokens.typography.fontFamilyMedium,
+                      fontSize: tokens.typography.caption,
+                    }}
+                  >
+                    Score {muscleScoreLabel}
+                  </Text>
+                  <Text
+                    style={{
+                      color: tokens.colors.textSecondary,
+                      fontFamily: tokens.typography.fontFamily,
+                      fontSize: tokens.typography.caption,
+                    }}
+                  >
+                    Strength trend
+                  </Text>
+                </View>
+              </View>
             </Card>
           </View>
 
@@ -400,11 +616,27 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,
     gap: 24,
+    overflow: 'hidden',
+  },
+  heroHighlight: {
+    ...StyleSheet.absoluteFillObject,
   },
   heroHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  heroCopy: {
+    gap: 8,
+  },
+  heroStatsRow: {
+    marginTop: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  heroStat: {
+    gap: 4,
+    alignItems: 'center',
   },
   progressCenter: {
     position: 'absolute',
@@ -437,17 +669,76 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     paddingHorizontal: 24,
     paddingVertical: 20,
-    gap: 16,
-    shadowColor: 'rgba(34, 87, 122, 0.12)',
-    shadowOpacity: 1,
-    shadowOffset: { width: 0, height: 12 },
-    shadowRadius: 28,
-    elevation: 4,
+    gap: 20,
+    overflow: 'hidden',
   },
-  timelineRow: {
+  timelineHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  timelineTrackWrapper: {
+    height: 12,
+    borderRadius: 999,
+    position: 'relative',
+    overflow: 'hidden',
+    marginBottom: 32,
+  },
+  timelineTrackBackground: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  timelineTrackFill: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    borderRadius: 999,
+  },
+  timelineMarkersRow: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: -10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+  },
+  timelineMarker: {
+    width: 20,
+    alignItems: 'center',
+  },
+  timelineDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 2,
+    borderColor: '#ffffff',
+    backgroundColor: '#9FBEE0',
+    shadowColor: 'rgba(23, 51, 74, 0.2)',
+    shadowOpacity: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  timelineDotStart: {
+    backgroundColor: '#C8DAEB',
+  },
+  timelineDotCurrent: {
+    backgroundColor: '#3F7CAC',
+  },
+  timelineDotGoal: {
+    backgroundColor: '#0C5AA6',
+  },
+  timelineValues: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  timelineValue: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 6,
   },
   compositionRow: {
     flexDirection: 'row',
@@ -455,7 +746,19 @@ const styles = StyleSheet.create({
   },
   compositionCard: {
     flex: 1,
-    gap: 12,
+    gap: 16,
+    padding: 20,
+    borderRadius: 24,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  compositionGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  compositionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   compositionIcon: {
     width: 32,
@@ -463,5 +766,21 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  compositionMeter: {
+    gap: 8,
+  },
+  compositionMeterTrack: {
+    height: 8,
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  compositionMeterFill: {
+    height: '100%',
+    borderRadius: 999,
+  },
+  compositionMeterMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
 });
