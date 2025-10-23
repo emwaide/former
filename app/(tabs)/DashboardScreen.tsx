@@ -7,7 +7,6 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { styled } from 'nativewind';
 import { useRouter } from 'expo-router';
 import {
   Screen,
@@ -32,8 +31,6 @@ import { useAnalytics } from '../../hooks/useAnalytics';
 import { formatWeight, formatWeeklyChange, sortReadingsDesc } from '../../utils/format';
 import { kgToLb } from '../../lib/metrics';
 import { Reading } from '../../types/db';
-
-const AnimatedSection = styled(Animated.View);
 
 const easingCurve = Easing.bezier(0.65, 0, 0.35, 1);
 
@@ -181,17 +178,19 @@ export default function DashboardScreen() {
   return (
     <Screen>
       <VStack spacing="xl">
-        <AnimatedSection style={{ opacity: fadeValues[0] }} className="gap-2">
-          <Heading accessibilityRole="header">Welcome back, {user.name}</Heading>
-          <Body>
-            You&apos;re {progressPercent}% to your goal — steady progress.
-          </Body>
-        </AnimatedSection>
+        <Animated.View style={{ opacity: fadeValues[0] }}>
+          <VStack spacing="sm">
+            <Heading accessibilityRole="header">Welcome back, {user.name}</Heading>
+            <Body>
+              You&apos;re {progressPercent}% to your goal — steady progress.
+            </Body>
+          </VStack>
+        </Animated.View>
 
-        <AnimatedSection style={{ opacity: fadeValues[1] }}>
+        <Animated.View style={{ opacity: fadeValues[1] }}>
           <Card
             accessibilityLabel={`Goal progress. Start ${startWeight}. Current ${currentWeight}. Goal ${goalWeight}. ${progressPercent} percent to goal.`}
-            className="gap-6"
+            style={{ gap: tokens.spacing.xl }}
           >
             <VStack spacing="lg">
               <Label weight="semibold">Goal progress</Label>
@@ -221,14 +220,13 @@ export default function DashboardScreen() {
               </Body>
             </VStack>
           </Card>
-        </AnimatedSection>
+        </Animated.View>
 
-        <AnimatedSection style={{ opacity: fadeValues[2] }}>
+        <Animated.View style={{ opacity: fadeValues[2] }}>
           <HStack spacing="xl" align="stretch" wrap>
             <Card
               accessibilityLabel={`Momentum update. Weekly change ${weeklyChangeLabel}. ${weightComparison}`}
-              style={{ flex: 1, minWidth: 160 }}
-              className="gap-4"
+              style={{ flex: 1, minWidth: 160, gap: tokens.spacing.lg }}
             >
               <Label weight="semibold">Momentum</Label>
               <Body color={tokens.colors.textSecondary}>This week&apos;s change</Body>
@@ -243,8 +241,7 @@ export default function DashboardScreen() {
 
             <Card
               accessibilityLabel="Seven day trend chart comparing actual weight and projected goal"
-              style={{ flex: 1, minWidth: 200 }}
-              className="gap-4"
+              style={{ flex: 1, minWidth: 200, gap: tokens.spacing.lg }}
             >
               <Label weight="semibold">Weekly change chart</Label>
               <MiniLineChart
@@ -259,12 +256,12 @@ export default function DashboardScreen() {
               <Body>Latest value highlighted — projections adjust with each log.</Body>
             </Card>
           </HStack>
-        </AnimatedSection>
+        </Animated.View>
 
-        <AnimatedSection style={{ opacity: fadeValues[3] }}>
+        <Animated.View style={{ opacity: fadeValues[3] }}>
           <Card
             accessibilityLabel={`Body composition summary. Fat ${latest.bodyFatPct.toFixed(1)} percent. Muscle ${latest.skeletalMusclePct.toFixed(1)} percent.`}
-            className="gap-6"
+            style={{ gap: tokens.spacing.xl }}
           >
             <HStack spacing="lg" align="center" justify="space-between">
               <VStack spacing="sm" style={{ flex: 1 }}>
@@ -299,9 +296,13 @@ export default function DashboardScreen() {
               </VStack>
             </HStack>
           </Card>
-        </AnimatedSection>
+        </Animated.View>
 
-        <Card gradient className="gap-4" accessibilityLabel="Encouragement. Keep logging and add a new entry.">
+        <Card
+          gradient
+          style={{ gap: tokens.spacing.lg }}
+          accessibilityLabel="Encouragement. Keep logging and add a new entry."
+        >
           <Body color={tokens.colors.surface}>
             Logged! Your trend updates instantly. Capture another reading when you&apos;re ready.
           </Body>
