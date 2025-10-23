@@ -9,6 +9,8 @@ import {
   weeklyWeightSeries,
 } from '../lib/metrics';
 import { Reading, UserProfile } from '../types/db';
+import { formatWeeklyChange } from '../utils/format';
+import { countRecentLogs } from '../utils/logs';
 
 export type Analytics = {
   weeklyChangeKg: number;
@@ -19,6 +21,8 @@ export type Analytics = {
   hydrationLow: boolean;
   composition: { label: string; fatPct: number; leanPct: number }[];
   fatLossPct: number;
+  logsThisWeek: number;
+  weeklyChangeLabel: string;
 };
 
 const defaultAnalytics: Analytics = {
@@ -30,6 +34,8 @@ const defaultAnalytics: Analytics = {
   hydrationLow: false,
   composition: [],
   fatLossPct: 0,
+  logsThisWeek: 0,
+  weeklyChangeLabel: 'Holding steady vs last week',
 };
 
 export const useAnalytics = (user: UserProfile | null, readings: Reading[]): Analytics =>
@@ -62,6 +68,14 @@ export const useAnalytics = (user: UserProfile | null, readings: Reading[]): Ana
       };
     });
 
+    const logsThisWeek = countRecentLogs(sorted);
+    const absoluteWeeklyChange = Math.abs(weeklyDelta);
+    const formattedChange = formatWeeklyChange(absoluteWeeklyChange, user.unitSystem).replace(/^[+]/, '');
+    const weeklyChangeLabel =
+      absoluteWeeklyChange < 0.1
+        ? 'Holding steady vs last week'
+        : `${weeklyDelta < 0 ? 'Down' : 'Up'} ${formattedChange} vs last week`;
+
     return {
       weeklyChangeKg: weeklyDelta,
       progressPercent: progress,
@@ -77,5 +91,7 @@ export const useAnalytics = (user: UserProfile | null, readings: Reading[]): Ana
       hydrationLow,
       composition,
       fatLossPct: cumulativeFatLossPct(sorted),
+      logsThisWeek,
+      weeklyChangeLabel,
     };
   }, [readings, user]);

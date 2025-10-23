@@ -1,10 +1,27 @@
+import { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { Screen, Heading, Card, ProgressBar, MetricNumber, Body, HStack, VStack, MiniLineChart, Gauge, EmptyState } from '../../components';
+import { useRouter } from 'expo-router';
+import {
+  Screen,
+  Heading,
+  Card,
+  ProgressBar,
+  MetricNumber,
+  Body,
+  HStack,
+  VStack,
+  MiniLineChart,
+  Gauge,
+  EmptyState,
+  Button,
+  Icon,
+} from '../../components';
 import { useTheme } from '../../theme';
 import { useUser } from '../../hooks/useUser';
 import { useReadings } from '../../hooks/useReadings';
 import { useAnalytics, Analytics } from '../../hooks/useAnalytics';
 import { formatWeight, formatWeeklyChange, sortReadingsDesc } from '../../utils/format';
+import { countConsecutiveLogDays, countRecentLogs } from '../../utils/logs';
 import { Reading, UserProfile } from '../../types/db';
 
 type DashboardContentProps = {
@@ -14,8 +31,51 @@ type DashboardContentProps = {
   analytics: Analytics;
 };
 
+type Guidance = {
+  copy: string;
+  actionLabel: string;
+};
+
+const buildGuidance = (analytics: Analytics, logsThisWeek: number): Guidance => {
+  if (analytics.hydrationLow) {
+    return {
+      copy: 'Hydration dipped this week — a glass before lunch keeps recovery on track.',
+      actionLabel: 'Log hydration',
+    };
+  }
+
+  if (logsThisWeek < 3) {
+    const logCopy =
+      logsThisWeek === 0
+        ? 'No entries yet — jot one down to keep trends sharp.'
+        : `${logsThisWeek} ${logsThisWeek === 1 ? 'log' : 'logs'} so far — one more locks in the pattern.`;
+    return {
+      copy: logCopy,
+      actionLabel: 'Log new entry',
+    };
+  }
+
+  return {
+    copy: `${analytics.weeklyChangeLabel}. Keep capturing details to stay ahead.`,
+    actionLabel: 'Log new entry',
+  };
+};
+
 export const DashboardContent = ({ loading, user, readings, analytics }: DashboardContentProps) => {
   const { tokens } = useTheme();
+  const router = useRouter();
+
+  const weeklyLogs = useMemo(
+    () => analytics.logsThisWeek ?? countRecentLogs(readings),
+    [analytics.logsThisWeek, readings],
+  );
+  const streakDays = useMemo(() => countConsecutiveLogDays(readings), [readings]);
+  const guidance = useMemo(() => buildGuidance(analytics, weeklyLogs), [analytics, weeklyLogs]);
+  const streakCopy = streakDays > 1 ? `${streakDays}-day streak` : streakDays === 1 ? '1-day streak' : 'Start your streak';
+
+  const handlePrimaryAction = () => {
+    router.push('/(tabs)/log');
+  };
 
   if (loading) {
     return (
@@ -45,6 +105,43 @@ export const DashboardContent = ({ loading, user, readings, analytics }: Dashboa
     <Screen>
       <VStack spacing="xl">
         <Heading>Welcome back, {user.name}</Heading>
+        <Card
+          gradient
+          accessibilityLabel={`${guidance.copy} Suggested action: ${guidance.actionLabel}.`}
+          style={{ padding: tokens.spacing.xl }}
+        >
+          <VStack spacing="lg">
+            <HStack align="flex-start" justify="space-between">
+              <VStack spacing="sm" style={{ flex: 1 }}>
+                <Body weight="semibold" color={tokens.colors.surface}>
+                  Today’s guidance
+                </Body>
+                <Body color={tokens.colors.surface} style={{ lineHeight: 22 }}>
+                  {guidance.copy}
+                </Body>
+              </VStack>
+              <View
+                accessible
+                accessibilityLabel={`Logging streak: ${streakCopy}`}
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.16)',
+                  borderRadius: tokens.radius.pill,
+                  paddingHorizontal: tokens.spacing.sm,
+                  paddingVertical: tokens.spacing.xs,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: tokens.spacing.xs,
+                }}
+              >
+                <Icon name="trending-up" size={16} color={tokens.colors.surface} />
+                <Body weight="semibold" color={tokens.colors.surface} style={{ fontSize: 14 }}>
+                  {streakCopy}
+                </Body>
+              </View>
+            </HStack>
+            <Button label={guidance.actionLabel} accessibilityLabel={guidance.actionLabel} onPress={handlePrimaryAction} />
+          </VStack>
+        </Card>
         <Card>
           <VStack spacing="lg">
             <Body weight="semibold" color={tokens.colors.textSecondary}>
@@ -59,7 +156,7 @@ export const DashboardContent = ({ loading, user, readings, analytics }: Dashboa
           <Card style={{ flex: 1, minWidth: 160 }}>
             <VStack spacing="sm">
               <Body weight="semibold" color={tokens.colors.textSecondary}>
-                This Week's Change
+                This Week’s Change
               </Body>
               <MetricNumber style={{ fontSize: 32 }} color={analytics.weeklyChangeKg <= 0 ? tokens.colors.accent : tokens.colors.accentTertiary}>
                 {formatWeeklyChange(analytics.weeklyChangeKg, user.unitSystem)}

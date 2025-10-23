@@ -90,7 +90,7 @@ export default function LogScreen() {
         <ScrollView contentContainerStyle={{ paddingHorizontal: tokens.spacing.xl, paddingBottom: tokens.spacing['2xl'] }} showsVerticalScrollIndicator={false}>
           <VStack spacing="xl">
             <Heading>Add reading</Heading>
-            <Body>Capture the details from today's body composition scan.</Body>
+            <Body>Capture the details from today’s body composition scan.</Body>
 
             <TextField label="Taken at" value={takenAt} onChangeText={setTakenAt} autoCapitalize="none" />
 
