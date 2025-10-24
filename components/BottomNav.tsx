@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './Icon';
 import { useTheme } from '../theme';
+import { beachPalette, shadow } from './dashboard/palette';
 
 type TabKey = 'index' | 'trends' | 'log' | 'insights' | 'settings';
 
@@ -24,9 +25,9 @@ export const BottomNav = ({ state, descriptors, navigation }: BottomTabBarProps)
         styles.container,
         {
           paddingBottom: Math.max(insets.bottom, 0),
-          backgroundColor: tokens.colors.card,
-          borderTopColor: tokens.colors.border,
-          shadowColor: tokens.colors.softShadow,
+          backgroundColor: '#FAF9F6EE',
+          borderTopColor: `${beachPalette.deepNavy}14`,
+          shadowColor: shadow.shadowColor,
         },
       ]}
     >
@@ -58,7 +59,7 @@ export const BottomNav = ({ state, descriptors, navigation }: BottomTabBarProps)
             });
           };
 
-          const inactiveColor = `${tokens.colors.textSecondary}99`;
+          const inactiveColor = `${beachPalette.driftwood}99`;
 
           return (
             <Pressable
@@ -76,7 +77,7 @@ export const BottomNav = ({ state, descriptors, navigation }: BottomTabBarProps)
                     style={[
                       styles.indicator,
                       {
-                        backgroundColor: tokens.colors.accentSecondary,
+                        backgroundColor: `${beachPalette.deepNavy}33`,
                         opacity: isFocused ? 1 : 0,
                       },
                     ]}
@@ -84,13 +85,13 @@ export const BottomNav = ({ state, descriptors, navigation }: BottomTabBarProps)
                   <Icon
                     name={iconName}
                     size={22}
-                    color={isFocused ? tokens.colors.accentSecondary : inactiveColor}
+                    color={isFocused ? beachPalette.deepNavy : inactiveColor}
                     accessibilityLabel={label}
                   />
                   <Text
                     style={{
                       marginTop: 2,
-                      color: isFocused ? tokens.colors.accentSecondary : inactiveColor,
+                      color: isFocused ? beachPalette.deepNavy : inactiveColor,
                       fontFamily: tokens.typography.fontFamilyMedium,
                       fontSize: 12,
                       opacity: pressed ? 0.8 : 1,
@@ -112,8 +113,9 @@ const styles = StyleSheet.create({
   container: {
     borderTopWidth: StyleSheet.hairlineWidth,
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 1,
-    shadowRadius: 16,
+    shadowOpacity: shadow.shadowOpacity,
+    shadowRadius: shadow.shadowRadius,
+    elevation: shadow.elevation,
   },
   row: {
     flexDirection: 'row',

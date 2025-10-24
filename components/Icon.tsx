@@ -2,7 +2,7 @@ import { ComponentProps } from 'react';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 
-type IconName = ComponentProps<typeof Feather>['name'];
+export type IconName = ComponentProps<typeof Feather>['name'];
 
 type IconProps = {
   name: IconName;
