@@ -9,7 +9,6 @@ import { formatWeight, formatWeeklyChange } from '../utils/format';
 import { UnitSystem } from '../types/db';
 
 type DashboardScreenProps = {
-  headerSubtitle: string;
   progressValue: number;
   userName: string;
   startWeightKg: number;
@@ -106,7 +105,6 @@ const ProgressRing = ({
 };
 
 const DashboardScreen = ({
-  headerSubtitle,
   progressValue,
   userName,
   startWeightKg,
@@ -186,7 +184,7 @@ const DashboardScreen = ({
                   fontSize: tokens.typography.caption,
                   textTransform: 'uppercase',
                   letterSpacing: 1.6,
-                  paddingLeft: "10px"
+                  paddingLeft: 10
                 }}
               >
                 FORMER

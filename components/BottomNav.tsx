@@ -4,10 +4,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './Icon';
 import { useTheme } from '../theme';
 
-type TabKey = 'dashboard' | 'trends' | 'log' | 'insights' | 'settings';
+type TabKey = 'index' | 'trends' | 'log' | 'insights' | 'settings';
 
 const iconMap: Record<TabKey, string> = {
-  dashboard: 'layout',
+  index: 'layout',
   trends: 'trending-up',
   log: 'plus-circle',
   insights: 'pie-chart',
