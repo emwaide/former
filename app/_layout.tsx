@@ -3,7 +3,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useFonts, Poppins_400Regular, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
+import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
 import { ThemeProvider, useTheme } from '../theme';
 import { initializeDatabase } from '../db/init';
 import { seedDemoData } from '../db/seed';
@@ -28,9 +28,8 @@ const RootNavigator = () => {
   const [ready, setReady] = useState(false);
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
+    Poppins_500Medium,
     Poppins_600SemiBold,
-    Inter_400Regular: Poppins_400Regular,
-    Inter_500Medium: Poppins_600SemiBold,
   });
 
   useEffect(() => {

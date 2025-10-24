@@ -1,7 +1,7 @@
 import { ReactNode, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
 import { ThemeTokens, useTheme } from '../../theme';
 
 const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
@@ -15,24 +15,34 @@ type ProgressRingProps = {
 
 const ProgressRing = ({
   progress,
-  size = 200,
-  strokeWidth = 14,
+  size = 208,
+  strokeWidth = 16,
   children,
-  accentColor,
-}: ProgressRingProps & { accentColor: string }) => {
+  accentGradient,
+}: ProgressRingProps & { accentGradient: [string, string] }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const clamped = clamp(progress);
   const strokeDashoffset = circumference * (1 - clamped);
+  const gradientId = useMemo(
+    () => `ringGradient-${Math.random().toString(36).slice(2, 9)}`,
+    [],
+  );
 
   return (
     <View style={[ringStyles.container, { width: size, height: size }]}>
       <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <Defs>
+          <SvgGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
+            <Stop offset="0%" stopColor={accentGradient[0]} stopOpacity={1} />
+            <Stop offset="100%" stopColor={accentGradient[1]} stopOpacity={1} />
+          </SvgGradient>
+        </Defs>
         <Circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="rgba(255,255,255,0.25)"
+          stroke="rgba(255,255,255,0.3)"
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -40,7 +50,7 @@ const ProgressRing = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={accentColor}
+          stroke={`url(#${gradientId})`}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           fill="none"
@@ -91,7 +101,7 @@ export const HeroSection = ({
         <Text style={styles.subheading}>{`Currently ${currentLabel} · aiming for ${goalLabel}`}</Text>
       </View>
 
-      <ProgressRing progress={progressFraction} accentColor={tokens.colors.accentTertiary}>
+      <ProgressRing progress={progressFraction} accentGradient={tokens.colors.ringGradient}>
         <Text style={styles.percentLabel}>{`${percent}%`}</Text>
         <Text style={styles.percentCaption}>to goal</Text>
       </ProgressRing>
@@ -120,11 +130,12 @@ const createStyles = (tokens: ThemeTokens) =>
       borderBottomLeftRadius: 32,
       borderBottomRightRadius: 32,
       gap: tokens.spacing.lg,
+      marginHorizontal: -tokens.spacing.md,
     },
     heading: {
       color: '#FFFFFF',
       fontSize: tokens.typography.heading,
-      lineHeight: 32,
+      lineHeight: 34,
       fontFamily: tokens.typography.fontFamilyAlt,
       letterSpacing: 0.2,
     },
@@ -151,7 +162,7 @@ const createStyles = (tokens: ThemeTokens) =>
     statsRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      backgroundColor: 'rgba(255,255,255,0.15)',
+      backgroundColor: 'rgba(255,255,255,0.22)',
       borderRadius: 20,
       paddingVertical: tokens.spacing.sm,
       paddingHorizontal: tokens.spacing.lg,

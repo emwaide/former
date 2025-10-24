@@ -36,7 +36,7 @@ const buildSparklinePath = (values: number[], width: number, height: number) => 
 export const WeeklyChangeCard = ({ changeLabel, changeValue, subtext, data }: WeeklyChangeCardProps) => {
   const { tokens } = useTheme();
   const styles = useMemo(() => createStyles(tokens), [tokens]);
-  const strokeColor = changeValue <= 0 ? tokens.colors.positiveSoft : tokens.colors.negativeSoft;
+  const strokeColor = changeValue <= 0 ? tokens.colors.success : tokens.colors.danger;
 
   return (
     <View style={styles.card}>
@@ -54,7 +54,7 @@ export const WeeklyChangeCard = ({ changeLabel, changeValue, subtext, data }: We
         </View>
         <View accessible accessibilityLabel="7 day weight trend" style={styles.sparklineWrapper}>
           <Svg width="100%" height="100%" viewBox="0 0 120 48" preserveAspectRatio="none">
-            <Path d={buildSparklinePath(data, 120, 48)} stroke={tokens.colors.brandNavy} strokeWidth={2} fill="none" />
+            <Path d={buildSparklinePath(data, 120, 48)} stroke={tokens.colors.brandMid} strokeWidth={2} fill="none" />
           </Svg>
         </View>
       </View>

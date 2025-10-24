@@ -42,18 +42,6 @@ const buildLoggedDays = (readings: Reading[]): boolean[] => {
   });
 };
 
-const metricHeadlineFromDelta = (prefix: string, delta: number, unit: string) => {
-  if (Math.abs(delta) < 0.1) return `${prefix} steady`;
-  const direction = delta < 0 ? '↓' : '↑';
-  return `${prefix} ${direction} ${Math.abs(delta).toFixed(1)} ${unit}`;
-};
-
-const metricHeadlineFromPercentDelta = (prefix: string, delta: number) => {
-  if (Math.abs(delta) < 0.1) return `${prefix} steady`;
-  const direction = delta < 0 ? '↓' : '↑';
-  return `${prefix} ${direction} ${Math.abs(delta).toFixed(1)}%`;
-};
-
 type Guidance = { message: string; actionLabel?: string } | null;
 
 const buildGuidance = (latest: Reading, previous: Reading | undefined): Guidance => {
@@ -81,11 +69,39 @@ const buildGuidance = (latest: Reading, previous: Reading | undefined): Guidance
 type DashboardMetric = {
   id: string;
   label: string;
-  headline: string;
-  subtext: string;
-  icon: string;
+  valueLabel: string;
+  deltaLabel: string;
+  metaLabel: string;
   accentColor: string;
   progress: number;
+  tone?: 'positive' | 'negative' | 'neutral';
+};
+
+type DeltaResult = { text: string; tone: 'positive' | 'negative' | 'neutral' };
+
+const formatDeltaLabel = (value: number, unit: string, positiveIsGood: boolean): DeltaResult => {
+  if (Math.abs(value) < 0.1) {
+    return { text: 'Holding steady vs start', tone: 'neutral' as const };
+  }
+  const direction = value < 0 ? 'Down' : 'Up';
+  const tone = value < 0 === positiveIsGood ? 'positive' : 'negative';
+  const formattedUnit = unit ? ` ${unit}` : '';
+  return {
+    text: `${direction} ${Math.abs(value).toFixed(1)}${formattedUnit} since start`,
+    tone,
+  };
+};
+
+const formatPercentDeltaLabel = (value: number, positiveIsGood: boolean, precision = 1): DeltaResult => {
+  if (Math.abs(value) < 0.1) {
+    return { text: 'Holding steady vs start', tone: 'neutral' as const };
+  }
+  const direction = value < 0 ? 'Down' : 'Up';
+  const tone = value < 0 === positiveIsGood ? 'positive' : 'negative';
+  return {
+    text: `${direction} ${Math.abs(value).toFixed(precision)} pts since start`,
+    tone,
+  };
 };
 
 const buildMetrics = (
@@ -103,62 +119,73 @@ const buildMetrics = (
   const waterDelta = latest.bodyWaterPct - first.bodyWaterPct;
   const visceralDelta = latest.visceralFatIdx - first.visceralFatIdx;
 
+  const weightDeltaResult = formatDeltaLabel(weightDelta, weightUnit, true);
+  const muscleDeltaResult = formatDeltaLabel(muscleDelta, weightUnit, true);
+  const visceralDeltaResult = formatDeltaLabel(visceralDelta, '', false);
+  const proteinDeltaResult = formatPercentDeltaLabel(proteinDelta, true);
+  const waterDeltaResult = formatPercentDeltaLabel(waterDelta, true);
+  const fatDeltaResult = formatPercentDeltaLabel(fatDelta, false);
+
   return [
     {
       id: 'weight',
       label: 'Weight',
-      headline: metricHeadlineFromDelta('Weight', weightDelta, weightUnit),
-      subtext: `Current ${formatWeight(latest.weightKg, unit)} · Start ${formatWeight(first.weightKg, unit)}`,
-      icon: 'trending-down',
+      valueLabel: formatWeight(latest.weightKg, unit),
+      deltaLabel: weightDeltaResult.text,
+      metaLabel: `Start ${formatWeight(first.weightKg, unit)}`,
       accentColor: tokens.colors.brandNavy,
       progress: clamp(progressFraction),
+      tone: weightDeltaResult.tone,
     },
     {
       id: 'bodyFat',
       label: 'Body Fat %',
-      headline: metricHeadlineFromPercentDelta('Fat', fatDelta),
-      subtext: `Current ${latest.bodyFatPct.toFixed(1)}% · Start ${first.bodyFatPct.toFixed(1)}%`,
-      icon: 'pie-chart',
-      accentColor: tokens.colors.negativeSoft,
+      valueLabel: `${latest.bodyFatPct.toFixed(1)}%`,
+      deltaLabel: fatDeltaResult.text,
+      metaLabel: `Start ${first.bodyFatPct.toFixed(1)}%`,
+      accentColor: tokens.colors.danger,
       progress: clamp(first.bodyFatPct ? 1 - latest.bodyFatPct / first.bodyFatPct : 0.5),
+      tone: fatDeltaResult.tone,
     },
     {
       id: 'muscle',
       label: 'Muscle Mass',
-      headline: metricHeadlineFromDelta('Muscle', muscleDelta, weightUnit),
-      subtext: `Current ${formatMass(latest.muscleMassKg, unit)} · Start ${formatMass(first.muscleMassKg, unit)}`,
-      icon: 'activity',
-      accentColor: tokens.colors.positiveSoft,
+      valueLabel: formatMass(latest.muscleMassKg, unit),
+      deltaLabel: muscleDeltaResult.text,
+      metaLabel: `Start ${formatMass(first.muscleMassKg, unit)}`,
+      accentColor: tokens.colors.success,
       progress: clamp(first.muscleMassKg ? latest.muscleMassKg / first.muscleMassKg : 0.5),
+      tone: muscleDeltaResult.tone,
     },
     {
       id: 'protein',
       label: 'Protein %',
-      headline: metricHeadlineFromPercentDelta('Protein', proteinDelta),
-      subtext: `Current ${latest.proteinPct.toFixed(1)}% · Start ${first.proteinPct.toFixed(1)}%`,
-      icon: 'droplet',
-      accentColor: tokens.colors.accentTertiary,
+      valueLabel: `${latest.proteinPct.toFixed(1)}%`,
+      deltaLabel: proteinDeltaResult.text,
+      metaLabel: `Start ${first.proteinPct.toFixed(1)}%`,
+      accentColor: tokens.colors.accentSecondary,
       progress: clamp(latest.proteinPct / 100),
+      tone: proteinDeltaResult.tone,
     },
     {
       id: 'water',
       label: 'Water %',
-      headline: metricHeadlineFromPercentDelta('Water', waterDelta),
-      subtext: `Current ${latest.bodyWaterPct.toFixed(1)}% · Start ${first.bodyWaterPct.toFixed(1)}%`,
-      icon: 'cloud-rain',
-      accentColor: tokens.colors.accentTertiary,
+      valueLabel: `${latest.bodyWaterPct.toFixed(1)}%`,
+      deltaLabel: waterDeltaResult.text,
+      metaLabel: `Start ${first.bodyWaterPct.toFixed(1)}%`,
+      accentColor: tokens.colors.accentSecondary,
       progress: clamp(latest.bodyWaterPct / 100),
+      tone: waterDeltaResult.tone,
     },
     {
       id: 'visceral',
       label: 'Visceral Fat',
-      headline: Math.abs(visceralDelta) < 0.1
-        ? 'Visceral steady'
-        : `Visceral ${visceralDelta < 0 ? '↓' : '↑'} ${Math.abs(visceralDelta).toFixed(1)}`,
-      subtext: `Current ${latest.visceralFatIdx.toFixed(1)} · Start ${first.visceralFatIdx.toFixed(1)}`,
-      icon: 'shield',
+      valueLabel: latest.visceralFatIdx.toFixed(1),
+      deltaLabel: visceralDeltaResult.text.replace(' since start', '').trim(),
+      metaLabel: `Start ${first.visceralFatIdx.toFixed(1)}`,
       accentColor: tokens.colors.brandNavy,
       progress: clamp(1 - latest.visceralFatIdx / Math.max(first.visceralFatIdx, 20)),
+      tone: visceralDeltaResult.tone,
     },
   ];
 };

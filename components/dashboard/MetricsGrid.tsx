@@ -2,15 +2,17 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Link } from 'expo-router';
 import { MetricTile } from './MetricTile';
+import type { MetricTone } from './MetricTile';
 import { ThemeTokens, useTheme } from '../../theme';
 
 type MetricsGridProps = {
   metrics: {
     id: string;
     label: string;
-    headline: string;
-    subtext: string;
-    icon: string;
+    valueLabel: string;
+    deltaLabel: string;
+    metaLabel: string;
+    tone?: MetricTone;
     accentColor: string;
     progress: number;
   }[];
@@ -33,13 +35,14 @@ export const MetricsGrid = ({ metrics, showMore }: MetricsGridProps) => {
       </View>
 
       <View style={styles.grid}>
-        {metrics.map(({ id, label, headline, subtext, icon, accentColor, progress }) => (
+        {metrics.map(({ id, label, valueLabel, deltaLabel, metaLabel, accentColor, progress, tone }) => (
           <MetricTile
             key={id}
             label={label}
-            headline={headline}
-            subtext={subtext}
-            icon={icon}
+            valueLabel={valueLabel}
+            deltaLabel={deltaLabel}
+            metaLabel={metaLabel}
+            tone={tone}
             accentColor={accentColor}
             progress={progress}
           />
