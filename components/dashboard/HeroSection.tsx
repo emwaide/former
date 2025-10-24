@@ -1,8 +1,8 @@
-import { ReactNode } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle } from 'react-native-svg';
-import { palette, spacing, typography } from './constants';
+import { ThemeTokens, useTheme } from '../../theme';
 
 const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
 
@@ -13,14 +13,20 @@ type ProgressRingProps = {
   children?: ReactNode;
 };
 
-const ProgressRing = ({ progress, size = 200, strokeWidth = 14, children }: ProgressRingProps) => {
+const ProgressRing = ({
+  progress,
+  size = 200,
+  strokeWidth = 14,
+  children,
+  accentColor,
+}: ProgressRingProps & { accentColor: string }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const clamped = clamp(progress);
   const strokeDashoffset = circumference * (1 - clamped);
 
   return (
-    <View style={[styles.ringContainer, { width: size, height: size }]}> 
+    <View style={[ringStyles.container, { width: size, height: size }]}>
       <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <Circle
           cx={size / 2}
@@ -34,7 +40,7 @@ const ProgressRing = ({ progress, size = 200, strokeWidth = 14, children }: Prog
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={palette.blueLight}
+          stroke={accentColor}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           fill="none"
@@ -43,7 +49,7 @@ const ProgressRing = ({ progress, size = 200, strokeWidth = 14, children }: Prog
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </Svg>
-      <View style={styles.ringCenter}>{children}</View>
+      <View style={ringStyles.center}>{children}</View>
     </View>
   );
 };
@@ -67,11 +73,13 @@ export const HeroSection = ({
   topInset = 0,
   children,
 }: HeroSectionProps) => {
+  const { tokens } = useTheme();
+  const styles = useMemo(() => createStyles(tokens), [tokens]);
   const percent = Math.round(clamp(progressFraction) * 100);
 
   return (
     <LinearGradient
-      colors={[palette.blueMid, palette.blueLight, palette.aquaSoft]}
+      colors={tokens.colors.heroGradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
       style={[styles.container, { paddingTop: topInset + 60 }]}
@@ -83,7 +91,7 @@ export const HeroSection = ({
         <Text style={styles.subheading}>{`Currently ${currentLabel} · aiming for ${goalLabel}`}</Text>
       </View>
 
-      <ProgressRing progress={progressFraction}>
+      <ProgressRing progress={progressFraction} accentColor={tokens.colors.accentTertiary}>
         <Text style={styles.percentLabel}>{`${percent}%`}</Text>
         <Text style={styles.percentCaption}>to goal</Text>
       </ProgressRing>
@@ -104,77 +112,81 @@ export const HeroSection = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (tokens: ThemeTokens) =>
+  StyleSheet.create({
+    container: {
+      paddingHorizontal: tokens.spacing.xl,
+      paddingBottom: tokens.spacing.xl,
+      borderBottomLeftRadius: 32,
+      borderBottomRightRadius: 32,
+      gap: tokens.spacing.lg,
+    },
+    heading: {
+      color: '#FFFFFF',
+      fontSize: tokens.typography.heading,
+      lineHeight: 32,
+      fontFamily: tokens.typography.fontFamilyAlt,
+      letterSpacing: 0.2,
+    },
+    subheading: {
+      color: 'rgba(255,255,255,0.88)',
+      fontSize: tokens.typography.body,
+      lineHeight: tokens.typography.body * 1.4,
+      fontFamily: tokens.typography.fontFamily,
+      marginTop: tokens.spacing.xs,
+    },
+    percentLabel: {
+      color: '#FFFFFF',
+      fontSize: 48,
+      fontFamily: tokens.typography.fontFamilyAlt,
+      letterSpacing: -0.5,
+    },
+    percentCaption: {
+      color: 'rgba(255,255,255,0.9)',
+      fontSize: tokens.typography.body,
+      fontFamily: tokens.typography.fontFamilyMedium,
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+    },
+    statsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      borderRadius: 20,
+      paddingVertical: tokens.spacing.sm,
+      paddingHorizontal: tokens.spacing.lg,
+    },
+    statItem: {
+      alignItems: 'center',
+      gap: 4,
+    },
+    statLabel: {
+      color: 'rgba(255,255,255,0.8)',
+      fontSize: tokens.typography.caption,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+      fontFamily: tokens.typography.fontFamilyMedium,
+    },
+    statValue: {
+      color: '#FFFFFF',
+      fontSize: tokens.typography.body,
+      fontFamily: tokens.typography.fontFamilyAlt,
+    },
+    ctaContainer: {
+      marginTop: tokens.spacing.sm,
+    },
+  });
+
+const ringStyles = StyleSheet.create({
   container: {
-    paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.xl,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    gap: spacing.lg,
-  },
-  heading: {
-    color: '#FFFFFF',
-    fontSize: 24,
-    lineHeight: 32,
-    fontFamily: 'Inter_600SemiBold',
-    letterSpacing: 0.2,
-  },
-  subheading: {
-    color: 'rgba(255,255,255,0.88)',
-    fontSize: typography.body,
-    lineHeight: typography.body * 1.4,
-    fontFamily: 'Inter_400Regular',
-    marginTop: spacing.xs,
-  },
-  ringContainer: {
     alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ringCenter: {
+  center: {
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  percentLabel: {
-    color: '#FFFFFF',
-    fontSize: 48,
-    fontFamily: 'Inter_600SemiBold',
-    letterSpacing: -0.5,
-  },
-  percentCaption: {
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: typography.body,
-    fontFamily: 'Inter_500Medium',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 20,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
-  },
-  statItem: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  statLabel: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: typography.caption,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    fontFamily: 'Inter_500Medium',
-  },
-  statValue: {
-    color: '#FFFFFF',
-    fontSize: typography.body,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  ctaContainer: {
-    marginTop: spacing.sm,
   },
 });
 

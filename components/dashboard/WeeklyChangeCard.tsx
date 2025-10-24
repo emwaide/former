@@ -1,7 +1,8 @@
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { Link } from 'expo-router';
-import { palette, spacing, typography, cardShadow } from './constants';
+import { ThemeTokens, useTheme } from '../../theme';
 
 type WeeklyChangeCardProps = {
   changeLabel: string;
@@ -33,7 +34,9 @@ const buildSparklinePath = (values: number[], width: number, height: number) => 
 };
 
 export const WeeklyChangeCard = ({ changeLabel, changeValue, subtext, data }: WeeklyChangeCardProps) => {
-  const strokeColor = changeValue <= 0 ? palette.successSoft : palette.errorSoft;
+  const { tokens } = useTheme();
+  const styles = useMemo(() => createStyles(tokens), [tokens]);
+  const strokeColor = changeValue <= 0 ? tokens.colors.positiveSoft : tokens.colors.negativeSoft;
 
   return (
     <View style={styles.card}>
@@ -51,7 +54,7 @@ export const WeeklyChangeCard = ({ changeLabel, changeValue, subtext, data }: We
         </View>
         <View accessible accessibilityLabel="7 day weight trend" style={styles.sparklineWrapper}>
           <Svg width="100%" height="100%" viewBox="0 0 120 48" preserveAspectRatio="none">
-            <Path d={buildSparklinePath(data, 120, 48)} stroke={palette.navy} strokeWidth={2} fill="none" />
+            <Path d={buildSparklinePath(data, 120, 48)} stroke={tokens.colors.brandNavy} strokeWidth={2} fill="none" />
           </Svg>
         </View>
       </View>
@@ -59,54 +62,60 @@ export const WeeklyChangeCard = ({ changeLabel, changeValue, subtext, data }: We
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: spacing.lg,
-    gap: spacing.md,
-    ...cardShadow,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: {
-    color: palette.navy,
-    fontSize: typography.subtitle,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  link: {
-    paddingVertical: spacing.xs,
-  },
-  linkText: {
-    color: 'rgba(3,4,94,0.65)',
-    fontSize: typography.caption,
-    fontFamily: 'Inter_500Medium',
-  },
-  metricRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: spacing.lg,
-  },
-  metricValue: {
-    fontSize: 32,
-    fontFamily: 'Inter_600SemiBold',
-    letterSpacing: -0.3,
-  },
-  metricCaption: {
-    color: 'rgba(3,4,94,0.72)',
-    fontSize: typography.body,
-    lineHeight: typography.body * 1.4,
-    fontFamily: 'Inter_400Regular',
-    marginTop: spacing.xs,
-  },
-  sparklineWrapper: {
-    width: 120,
-    height: 48,
-  },
-});
+const createStyles = (tokens: ThemeTokens) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: tokens.colors.card,
+      borderRadius: tokens.radius.card,
+      padding: tokens.spacing.lg,
+      gap: tokens.spacing.md,
+      shadowColor: tokens.colors.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 1,
+      shadowRadius: 12,
+      elevation: 3,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    title: {
+      color: tokens.colors.brandNavy,
+      fontSize: tokens.typography.subheading,
+      fontFamily: tokens.typography.fontFamilyAlt,
+    },
+    link: {
+      paddingVertical: tokens.spacing.xs,
+    },
+    linkText: {
+      color: tokens.colors.textSubtle,
+      fontSize: tokens.typography.caption,
+      fontFamily: tokens.typography.fontFamilyMedium,
+    },
+    metricRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: tokens.spacing.lg,
+    },
+    metricValue: {
+      fontSize: 32,
+      fontFamily: tokens.typography.fontFamilyAlt,
+      letterSpacing: -0.3,
+      color: tokens.colors.brandNavy,
+    },
+    metricCaption: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.typography.body,
+      lineHeight: tokens.typography.body * 1.4,
+      fontFamily: tokens.typography.fontFamily,
+      marginTop: tokens.spacing.xs,
+    },
+    sparklineWrapper: {
+      width: 120,
+      height: 48,
+    },
+  });
 
 export default WeeklyChangeCard;

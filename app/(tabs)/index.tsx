@@ -8,7 +8,6 @@ import { WeeklyChangeCard } from '../../components/dashboard/WeeklyChangeCard';
 import { MetricsGrid } from '../../components/dashboard/MetricsGrid';
 import { StreakCard } from '../../components/dashboard/StreakCard';
 import { GuidanceCard } from '../../components/dashboard/GuidanceCard';
-import { palette, spacing } from '../../components/dashboard/constants';
 import { EmptyState } from '../../components';
 import { useUser } from '../../hooks/useUser';
 import { useReadings } from '../../hooks/useReadings';
@@ -16,12 +15,7 @@ import { useAnalytics, Analytics } from '../../hooks/useAnalytics';
 import { formatDate, formatWeight, formatWeeklyChange, sortReadingsDesc } from '../../utils/format';
 import { kgToLb } from '../../lib/metrics';
 import { Reading, UserProfile, UnitSystem } from '../../types/db';
-
-const LoadingState = () => (
-  <View style={styles.loadingContainer}>
-    <ActivityIndicator size="large" color={palette.blueLight} />
-  </View>
-);
+import { ThemeTokens, useTheme } from '../../theme';
 
 const toDateKey = (iso: string) => iso.split('T')[0];
 
@@ -99,6 +93,7 @@ const buildMetrics = (
   first: Reading,
   progressFraction: number,
   unit: UnitSystem,
+  tokens: ThemeTokens,
 ): DashboardMetric[] => {
   const weightDelta = kgToPreferred(latest.weightKg - first.weightKg, unit);
   const weightUnit = unit === 'imperial' ? 'lb' : 'kg';
@@ -115,7 +110,7 @@ const buildMetrics = (
       headline: metricHeadlineFromDelta('Weight', weightDelta, weightUnit),
       subtext: `Current ${formatWeight(latest.weightKg, unit)} · Start ${formatWeight(first.weightKg, unit)}`,
       icon: 'trending-down',
-      accentColor: palette.navy,
+      accentColor: tokens.colors.brandNavy,
       progress: clamp(progressFraction),
     },
     {
@@ -124,7 +119,7 @@ const buildMetrics = (
       headline: metricHeadlineFromPercentDelta('Fat', fatDelta),
       subtext: `Current ${latest.bodyFatPct.toFixed(1)}% · Start ${first.bodyFatPct.toFixed(1)}%`,
       icon: 'pie-chart',
-      accentColor: palette.errorSoft,
+      accentColor: tokens.colors.negativeSoft,
       progress: clamp(first.bodyFatPct ? 1 - latest.bodyFatPct / first.bodyFatPct : 0.5),
     },
     {
@@ -133,7 +128,7 @@ const buildMetrics = (
       headline: metricHeadlineFromDelta('Muscle', muscleDelta, weightUnit),
       subtext: `Current ${formatMass(latest.muscleMassKg, unit)} · Start ${formatMass(first.muscleMassKg, unit)}`,
       icon: 'activity',
-      accentColor: palette.successSoft,
+      accentColor: tokens.colors.positiveSoft,
       progress: clamp(first.muscleMassKg ? latest.muscleMassKg / first.muscleMassKg : 0.5),
     },
     {
@@ -142,7 +137,7 @@ const buildMetrics = (
       headline: metricHeadlineFromPercentDelta('Protein', proteinDelta),
       subtext: `Current ${latest.proteinPct.toFixed(1)}% · Start ${first.proteinPct.toFixed(1)}%`,
       icon: 'droplet',
-      accentColor: palette.blueLight,
+      accentColor: tokens.colors.accentTertiary,
       progress: clamp(latest.proteinPct / 100),
     },
     {
@@ -151,7 +146,7 @@ const buildMetrics = (
       headline: metricHeadlineFromPercentDelta('Water', waterDelta),
       subtext: `Current ${latest.bodyWaterPct.toFixed(1)}% · Start ${first.bodyWaterPct.toFixed(1)}%`,
       icon: 'cloud-rain',
-      accentColor: palette.blueLight,
+      accentColor: tokens.colors.accentTertiary,
       progress: clamp(latest.bodyWaterPct / 100),
     },
     {
@@ -162,7 +157,7 @@ const buildMetrics = (
         : `Visceral ${visceralDelta < 0 ? '↓' : '↑'} ${Math.abs(visceralDelta).toFixed(1)}`,
       subtext: `Current ${latest.visceralFatIdx.toFixed(1)} · Start ${first.visceralFatIdx.toFixed(1)}`,
       icon: 'shield',
-      accentColor: palette.navy,
+      accentColor: tokens.colors.brandNavy,
       progress: clamp(1 - latest.visceralFatIdx / Math.max(first.visceralFatIdx, 20)),
     },
   ];
@@ -178,16 +173,22 @@ type DashboardContentProps = {
 export const DashboardContent = ({ loading, user, readings, analytics }: DashboardContentProps) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { tokens } = useTheme();
+  const styles = useMemo(() => createStyles(tokens), [tokens]);
 
   const sorted = useMemo(() => sortReadingsDesc(readings), [readings]);
 
   if (loading) {
-    return <LoadingState />;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={tokens.colors.accentTertiary} />
+      </View>
+    );
   }
 
   if (!user || sorted.length === 0) {
     return (
-      <View style={[styles.emptyContainer, { paddingTop: insets.top + spacing.xl }]}> 
+      <View style={[styles.emptyContainer, { paddingTop: insets.top + tokens.spacing.xl }]}>
         <EmptyState
           title="No readings yet"
           description="Log your first entry to unlock weekly trends and insights."
@@ -210,7 +211,7 @@ export const DashboardContent = ({ loading, user, readings, analytics }: Dashboa
   const previousCheckInDate = previous ? formatDate(previous.takenAt) : undefined;
   const weeklySubtext = composeMomentumCaption(previousWeightLabel, previousCheckInDate);
   const weeklySeries = (analytics.weeklyActualKg ?? []).map((point) => kgToPreferred(point.weightKg, user.unitSystem));
-  const metrics = buildMetrics(latest, first, progressFraction, user.unitSystem);
+  const metrics = buildMetrics(latest, first, progressFraction, user.unitSystem, tokens);
   const loggedDays = buildLoggedDays(sorted);
   const loggedCount = loggedDays.filter(Boolean).length;
   const guidance = buildGuidance(latest, previous);
@@ -284,32 +285,33 @@ export default function DashboardRoute() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: palette.skyTint,
-  },
-  scrollContent: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.xl,
-    paddingBottom: 120,
-    gap: spacing.xl,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: palette.skyTint,
-  },
-  emptyContainer: {
-    flex: 1,
-    backgroundColor: palette.skyTint,
-    paddingHorizontal: spacing.xl,
-  },
-  section: {
-    gap: spacing.md,
-  },
-  guidanceSection: {
-    marginBottom: spacing.xl,
-  },
-});
+const createStyles = (tokens: ThemeTokens) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: tokens.colors.background,
+    },
+    scrollContent: {
+      paddingHorizontal: tokens.spacing.md,
+      paddingTop: tokens.spacing.xl,
+      paddingBottom: 120,
+      gap: tokens.spacing.xl,
+    },
+    loadingContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: tokens.colors.background,
+    },
+    emptyContainer: {
+      flex: 1,
+      backgroundColor: tokens.colors.background,
+      paddingHorizontal: tokens.spacing.xl,
+    },
+    section: {
+      gap: tokens.spacing.md,
+    },
+    guidanceSection: {
+      marginBottom: tokens.spacing.xl,
+    },
+  });

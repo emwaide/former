@@ -10,17 +10,27 @@ export type ColorTokens = {
   contrastCard: string;
   text: string;
   textSecondary: string;
+  textSubtle: string;
   accent: string;
   accentSecondary: string;
   accentTertiary: string;
   success: string;
   warning: string;
   danger: string;
+  positiveSoft: string;
+  cautionSoft: string;
+  negativeSoft: string;
   border: string;
   mutedBorder: string;
   shadow: string;
   softShadow: string;
   gradient: [string, string];
+  heroGradient: [string, string, string];
+  guidanceGradient: [string, string];
+  brandNavy: string;
+  brandMid: string;
+  brandLight: string;
+  aquaSoft: string;
 };
 
 export type TypographyTokens = {
@@ -70,26 +80,36 @@ export const lightTokens: ThemeTokens = {
     background: palette.background,
     surface: palette.card,
     card: palette.card,
-    contrastCard: '#E6F1FA',
+    contrastCard: palette.aquaSoft,
     text: palette.textPrimary,
     textSecondary: palette.textSecondary,
-    accent: palette.primary,
-    accentSecondary: palette.primaryDeep,
-    accentTertiary: palette.seafoam,
-    success: palette.success,
-    warning: palette.warning,
-    danger: palette.error,
+    textSubtle: palette.textSubtle,
+    accent: palette.navy,
+    accentSecondary: palette.blueMid,
+    accentTertiary: palette.blueLight,
+    success: '#2F6F55',
+    warning: '#C47A2C',
+    danger: '#C44545',
+    positiveSoft: palette.successSoft,
+    cautionSoft: palette.warnSoft,
+    negativeSoft: palette.errorSoft,
     border: palette.divider,
-    mutedBorder: '#EEF2F6',
+    mutedBorder: '#D8ECF5',
     shadow: palette.shadowSoft,
     softShadow: palette.shadowTint,
-    gradient: [palette.primaryDeep, palette.primary],
+    gradient: [palette.blueMid, palette.blueLight],
+    heroGradient: [palette.blueMid, palette.blueLight, palette.aquaSoft],
+    guidanceGradient: [palette.aquaSoft, palette.skyTint],
+    brandNavy: palette.navy,
+    brandMid: palette.blueMid,
+    brandLight: palette.blueLight,
+    aquaSoft: palette.aquaSoft,
   },
   spacing: {
-    xs: 4,
-    sm: 8,
-    md: 12,
-    lg: 16,
+    xs: 6,
+    sm: 10,
+    md: 16,
+    lg: 20,
     xl: 24,
     '2xl': 32,
   },
@@ -101,7 +121,7 @@ export const lightTokens: ThemeTokens = {
   typography: {
     fontFamily: 'Inter_400Regular',
     fontFamilyMedium: 'Inter_500Medium',
-    fontFamilyAlt: 'Poppins_600SemiBold',
+    fontFamilyAlt: 'Inter_600SemiBold',
     heading: typographyScale.heading.fontSize,
     subheading: typographyScale.subheading.fontSize,
     body: typographyScale.body.fontSize,
@@ -131,17 +151,27 @@ export const darkTokens: ThemeTokens = {
     contrastCard: '#1F3D58',
     text: '#F1F5F9',
     textSecondary: 'rgba(241, 245, 249, 0.72)',
-    accent: palette.primary,
-    accentSecondary: palette.primary,
-    accentTertiary: palette.seafoam,
-    success: palette.success,
-    warning: palette.warning,
-    danger: palette.error,
+    textSubtle: 'rgba(241, 245, 249, 0.6)',
+    accent: palette.blueLight,
+    accentSecondary: palette.blueLight,
+    accentTertiary: palette.aquaSoft,
+    success: '#5ED5A8',
+    warning: '#F4C78A',
+    danger: '#F5A7A7',
+    positiveSoft: palette.successSoft,
+    cautionSoft: palette.warnSoft,
+    negativeSoft: palette.errorSoft,
     border: 'rgba(148, 163, 184, 0.28)',
     mutedBorder: 'rgba(148, 163, 184, 0.18)',
     shadow: 'rgba(0, 0, 0, 0.35)',
     softShadow: 'rgba(34, 87, 122, 0.35)',
-    gradient: [palette.primaryDeep, palette.primary],
+    gradient: [palette.blueMid, palette.blueLight],
+    heroGradient: ['#023E8A', '#0077B6', '#00B4D8'],
+    guidanceGradient: ['rgba(144, 224, 239, 0.25)', 'rgba(202, 240, 248, 0.15)'],
+    brandNavy: palette.navy,
+    brandMid: palette.blueMid,
+    brandLight: palette.blueLight,
+    aquaSoft: 'rgba(202, 240, 248, 0.32)',
   },
 };
 
