@@ -24,6 +24,8 @@
     "tests",
     "metro.config.js",
     "jest.config.js",
-    "jest.setup.ts"
+    "jest.setup.ts",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
   ]
 }

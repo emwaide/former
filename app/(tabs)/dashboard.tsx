@@ -68,15 +68,14 @@ export const DashboardContent = ({ loading, user, readings, analytics }: Dashboa
   const first = sorted[sorted.length - 1];
 
   const progressValue = Math.max(0, Math.min(1, analytics.progressPercent ?? 0));
-  const headerSubtitle = `${Math.round(progressValue * 100)}% to goal — steady progress.`;
   const weeklyChangeLabel = formatWeeklyChange(analytics.weeklyChangeKg ?? 0, user.unitSystem);
   const previousWeightLabel = formatWeight(previous.weightKg, user.unitSystem);
   const previousCheckInDate = previous ? formatDate(previous.takenAt) : undefined;
 
   return (
     <DashboardScreen
-      headerSubtitle={headerSubtitle}
       progressValue={progressValue}
+      userName={user.name}
       startWeightKg={user.startWeightKg}
       currentWeightKg={latest.weightKg}
       goalWeightKg={user.targetWeightKg}

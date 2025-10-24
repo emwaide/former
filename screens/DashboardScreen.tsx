@@ -11,6 +11,7 @@ import { UnitSystem } from '../types/db';
 type DashboardScreenProps = {
   headerSubtitle: string;
   progressValue: number;
+  userName: string;
   startWeightKg: number;
   currentWeightKg: number;
   goalWeightKg: number;
@@ -25,7 +26,7 @@ type DashboardScreenProps = {
   onLogPress: () => void;
 };
 
-const guidanceCopy = 'Keep your rhythm — small steps matter.';
+const guidanceCopy = 'Small steps matter!';
 
 const muscleDescriptor = (score: number) => {
   if (score >= 85) return 'Muscle thriving';
@@ -62,8 +63,8 @@ type ProgressRingProps = {
 
 const ProgressRing = ({
   progress,
-  size = 200,
-  strokeWidth = 16,
+  size = 175,
+  strokeWidth = 10,
   trackColor,
   trackOpacity = 0.16,
   progressColor,
@@ -75,7 +76,7 @@ const ProgressRing = ({
   const strokeDashoffset = circumference * (1 - clamped);
 
   return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ height: size, alignItems: 'center', justifyContent: 'center' }}>
       <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <Circle
           cx={size / 2}
@@ -107,6 +108,7 @@ const ProgressRing = ({
 const DashboardScreen = ({
   headerSubtitle,
   progressValue,
+  userName,
   startWeightKg,
   currentWeightKg,
   goalWeightKg,
@@ -175,19 +177,23 @@ const DashboardScreen = ({
             style={styles.heroHighlight}
           />
           <View style={styles.heroHeader}>
-            <Text
-              style={{
-                color: 'rgba(23, 51, 74, 0.8)',
-                fontFamily: tokens.typography.fontFamilyMedium,
-                fontSize: tokens.typography.caption,
-                textTransform: 'uppercase',
-                letterSpacing: 1.6,
-              }}
-            >
-              Your Progress
-            </Text>
+            <div>
+              <Icon name="repeat" size={20} color={tokens.colors.accentSecondary} accessibilityLabel="app favicon" />
+              <Text
+                style={{
+                  color: 'rgba(23, 51, 74, 0.8)',
+                  fontFamily: tokens.typography.fontFamilyMedium,
+                  fontSize: tokens.typography.caption,
+                  textTransform: 'uppercase',
+                  letterSpacing: 1.6,
+                  paddingLeft: "10px"
+                }}
+              >
+                FORMER
+              </Text>
+            </div>
             <View
-              accessibilityLabel={`Progress badge: ${progressBadge}`}
+              accessibilityLabel="user's streak"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.72)',
                 borderRadius: tokens.radius.pill,
@@ -203,7 +209,7 @@ const DashboardScreen = ({
                   letterSpacing: 0.4,
                 }}
               >
-                {progressBadge}
+                5 day streak!
               </Text>
             </View>
           </View>
@@ -248,9 +254,9 @@ const DashboardScreen = ({
                 letterSpacing: -0.2,
               }}
             >
-              {headerSubtitle}
+              {`Welcome Back, ${userName}!`}
             </Text>
-            <Text
+            {/* <Text
               style={{
                 color: 'rgba(23, 51, 74, 0.6)',
                 fontFamily: tokens.typography.fontFamily,
@@ -260,7 +266,7 @@ const DashboardScreen = ({
               }}
             >
               {heroSubline}
-            </Text>
+            </Text> */}
           </View>
 
           <View style={styles.heroStatsRow}>
@@ -307,17 +313,7 @@ const DashboardScreen = ({
                 letterSpacing: 1,
               }}
             >
-              Momentum
-            </Text>
-            <Text
-              style={{
-                color: tokens.colors.text,
-                fontFamily: tokens.typography.fontFamily,
-                fontSize: tokens.typography.body,
-                lineHeight: 22,
-              }}
-            >
-              {guidanceCopy}
+              Your Overview
             </Text>
           </View>
 
@@ -371,7 +367,7 @@ const DashboardScreen = ({
             </Text>
           </Card>
 
-          <Card
+          {/* <Card
             accessibilityLabel={`Weight timeline. Start ${startWeight}. Current ${currentWeight}. Goal ${goalWeight}. ${headerSubtitle}`}
             style={[styles.timelineCard, { backgroundColor: tokens.colors.card }]}
           >
@@ -381,10 +377,11 @@ const DashboardScreen = ({
                   color: tokens.colors.textSecondary,
                   fontFamily: tokens.typography.fontFamilyMedium,
                   fontSize: tokens.typography.caption,
+                  textTransform: 'uppercase',
                   letterSpacing: 0.5,
                 }}
               >
-                Weight Journey
+                Total Progress
               </Text>
               <Text
                 style={{
@@ -446,7 +443,7 @@ const DashboardScreen = ({
                 </View>
               ))}
             </View>
-          </Card>
+          </Card> */}
 
           <View style={styles.compositionRow}>
             <Card
@@ -612,7 +609,7 @@ const styles = StyleSheet.create({
   },
   hero: {
     paddingHorizontal: 32,
-    paddingBottom: 48,
+    paddingBottom: 30,
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,
     gap: 24,
@@ -645,7 +642,7 @@ const styles = StyleSheet.create({
   },
   bodySection: {
     paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingTop: 10,
     gap: 24,
   },
   momentumSection: {
