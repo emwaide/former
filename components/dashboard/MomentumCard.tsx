@@ -111,12 +111,13 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: 'Inter_500Medium',
     fontSize: 12,
-    letterSpacing: 1,
-    color: `${beachPalette.driftwood}B3`,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    color: 'rgba(90,103,114,0.7)',
   },
   row: {
     flexDirection: 'row',
-    marginTop: spacing * 2,
+    marginTop: spacing,
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing * 2,
@@ -130,13 +131,13 @@ const styles = StyleSheet.create({
     color: beachPalette.driftwood,
   },
   changeValue: {
-    marginTop: spacing,
+    marginTop: spacing * 0.75,
     fontFamily: 'Inter_500Medium',
     fontSize: 20,
     color: beachPalette.deepNavy,
   },
   caption: {
-    marginTop: spacing * 2,
+    marginTop: spacing * 1.5,
     fontFamily: 'Inter_400Regular',
     fontSize: 13,
     color: beachPalette.driftwood,

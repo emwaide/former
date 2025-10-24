@@ -4,8 +4,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HeroHeader } from '../../components/dashboard/HeroHeader';
 import { MomentumCard } from '../../components/dashboard/MomentumCard';
 import { CompositionCard } from '../../components/dashboard/CompositionCard';
-import { ConsistencyCard } from '../../components/dashboard/ConsistencyCard';
-import { WeeklyTrendCard } from '../../components/dashboard/WeeklyTrendCard';
 import { beachPalette, spacing } from '../../components/dashboard/palette';
 import { Icon, IconName } from '../../components/Icon';
 
@@ -15,7 +13,6 @@ type WeightSummary = {
 };
 
 type HeroData = {
-  name: string;
   goalPercent: number;
   weeklySummary: string;
   weightSummary: WeightSummary[];
@@ -44,37 +41,21 @@ type CompositionData = {
   accessibilityLabel: string;
 };
 
-type ConsistencyDay = {
-  label: string;
-  filled: boolean;
-};
-
-type ConsistencyData = {
-  loggedSummary: string;
-  streakSummary: string;
-  days: ConsistencyDay[];
-  accessibilityLabel: string;
-};
-
-type WeeklyTrendData = {
-  actual: number[];
-  predicted: number[];
-  deltaLabel: string;
-  accessibilityLabel: string;
-};
-
 type DashboardScreenProps = {
   hero: HeroData;
   momentum: MomentumData;
   compositions: CompositionData[];
-  consistency: ConsistencyData;
-  weeklyTrend?: WeeklyTrendData;
   footerCopy: string;
 };
 
 type AnimatedSectionProps = {
   index: number;
   children: ReactNode;
+};
+
+type SectionItem = {
+  key: string;
+  node: ReactNode;
 };
 
 const AnimatedSection = ({ index, children }: AnimatedSectionProps) => {
@@ -99,82 +80,52 @@ const AnimatedSection = ({ index, children }: AnimatedSectionProps) => {
   );
 };
 
-export const DashboardScreen = ({
-  hero,
-  momentum,
-  compositions,
-  consistency,
-  weeklyTrend,
-  footerCopy,
-}: DashboardScreenProps) => {
+export const DashboardScreen = ({ hero, momentum, compositions, footerCopy }: DashboardScreenProps) => {
   const insets = useSafeAreaInsets();
-  const sectionData = useMemo(() => {
-    const base = [
-      <HeroHeader
-        key="hero"
-        name={hero.name}
-        goalPercent={hero.goalPercent}
-        weeklySummary={hero.weeklySummary}
-        weightSummary={hero.weightSummary}
-        accessibilityLabel={hero.accessibilityLabel}
-      />,
-      <MomentumCard
-        key="momentum"
-        changeLabel="Change"
-        changeValue={momentum.changeValue}
-        caption={momentum.caption}
-        sparklinePoints={momentum.sparklinePoints}
-        accessibilityLabel={momentum.accessibilityLabel}
-      />,
-      <View key="composition" style={styles.compositionGrid}>
-        {compositions.map((card) => (
-          <View key={card.key} style={styles.compositionItem}>
+  const sectionData: SectionItem[] = useMemo(
+    () => [
+      {
+        key: 'hero',
+        node: (
+          <HeroHeader
+            goalPercent={hero.goalPercent}
+            weeklySummary={hero.weeklySummary}
+            weightSummary={hero.weightSummary}
+            accessibilityLabel={hero.accessibilityLabel}
+          />
+        ),
+      },
+      {
+        key: 'momentum',
+        node: (
+          <MomentumCard
+            changeLabel="Change"
+            changeValue={momentum.changeValue}
+            caption={momentum.caption}
+            sparklinePoints={momentum.sparklinePoints}
+            accessibilityLabel={momentum.accessibilityLabel}
+          />
+        ),
+      },
+      ...compositions.map((card) => ({
+        key: `composition-${card.key}`,
+        node: (
+          <View style={styles.sectionSpacing}>
             <CompositionCard
               title={card.title}
               icon={<Icon name={card.iconName as any} size={16} color={`${beachPalette.deepNavy}99`} />}
-              headline={
-                <Text style={styles.compositionHeadlineText}>
-                  {card.headline.map((part, index) => (
-                    <Text
-                      key={`${card.key}-${index}`}
-                      style={[styles.compositionHeadlineText, part.color ? { color: part.color } : null]}
-                    >
-                      {part.text}
-                    </Text>
-                  ))}
-                </Text>
-              }
+              headline={card.headline}
               progress={card.progress?.value}
               progressColor={card.progress?.color}
               stats={card.stats}
               accessibilityLabel={card.accessibilityLabel}
             />
           </View>
-        ))}
-      </View>,
-      <ConsistencyCard
-        key="consistency"
-        loggedSummary={consistency.loggedSummary}
-        streakSummary={consistency.streakSummary}
-        days={consistency.days}
-        accessibilityLabel={consistency.accessibilityLabel}
-      />,
-    ];
-
-    if (weeklyTrend) {
-      base.push(
-        <WeeklyTrendCard
-          key="trend"
-          actual={weeklyTrend.actual}
-          predicted={weeklyTrend.predicted}
-          deltaLabel={weeklyTrend.deltaLabel}
-          accessibilityLabel={weeklyTrend.accessibilityLabel}
-        />,
-      );
-    }
-
-    return base;
-  }, [hero, momentum, compositions, consistency, weeklyTrend]);
+        ),
+      })),
+    ],
+    [hero, momentum, compositions],
+  );
 
   return (
     <View style={styles.container}>
@@ -186,8 +137,8 @@ export const DashboardScreen = ({
         showsVerticalScrollIndicator={false}
       >
         {sectionData.map((section, index) => (
-          <AnimatedSection key={`section-${index}`} index={index}>
-            {section}
+          <AnimatedSection key={section.key} index={index}>
+            {section.node}
           </AnimatedSection>
         ))}
         <View style={styles.footer}>
@@ -203,25 +154,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: beachPalette.sandWhite,
   },
-  compositionGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing * 2,
+  sectionSpacing: {
     marginHorizontal: spacing * 2,
     marginTop: spacing * 3,
   },
-  compositionItem: {
-    flexBasis: '48%',
-    flexGrow: 1,
-    minWidth: 160,
-  },
-  compositionHeadlineText: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 16,
-    color: beachPalette.deepNavy,
-  },
   footer: {
-    marginTop: spacing * 4,
+    marginTop: spacing * 3,
     marginBottom: spacing * 2,
     alignItems: 'center',
     paddingHorizontal: spacing * 2,

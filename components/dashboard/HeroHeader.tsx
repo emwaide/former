@@ -12,7 +12,6 @@ type WeightSummary = {
 };
 
 type HeroHeaderProps = {
-  name: string;
   goalPercent: number;
   weeklySummary: string;
   weightSummary: WeightSummary[];
@@ -20,7 +19,6 @@ type HeroHeaderProps = {
 };
 
 export const HeroHeader = ({
-  name,
   goalPercent,
   weeklySummary,
   weightSummary,
@@ -58,9 +56,9 @@ export const HeroHeader = ({
         style={styles.gradient}
       >
         <View style={styles.topRow}>
-          <View style={styles.greetingBlock}>
-            <Text style={styles.greeting}>{`Hi ${name}`}</Text>
-            <Text style={styles.subGreeting}>Here’s your week at a glance</Text>
+          <View style={styles.headerCopy}>
+            <Text style={styles.heading}>Your week at a glance</Text>
+            <Text style={styles.subheading}>Here’s how you’re progressing.</Text>
             <View style={styles.pill} accessible accessibilityLabel={`${goalPercent}% to goal`}>
               <Text style={styles.pillText}>{`${goalPercent}% to goal`}</Text>
             </View>
@@ -106,7 +104,7 @@ export const HeroHeader = ({
           <Text style={styles.weightSummary}>
             {weightSummary
               .map((item) => `${item.label} ${item.value}`)
-              .join('   ·   ')}
+              .join('  ·  ')}
           </Text>
           <Text style={styles.weeklySummary}>{weeklySummary}</Text>
         </View>
@@ -119,7 +117,7 @@ const styles = StyleSheet.create({
   wrapper: {
     marginHorizontal: spacing * 2,
     marginTop: spacing * 4,
-    borderRadius: 24,
+    borderRadius: 16,
     overflow: 'hidden',
   },
   shadow: {
@@ -130,26 +128,26 @@ const styles = StyleSheet.create({
     elevation: shadow.elevation,
   },
   gradient: {
-    borderRadius: 24,
-    paddingHorizontal: spacing * 2,
-    paddingTop: spacing * 4,
-    paddingBottom: spacing * 3,
+    borderRadius: 16,
+    padding: spacing * 2,
+    gap: spacing * 2,
   },
   topRow: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
     flexWrap: 'wrap',
     gap: spacing * 2,
   },
-  greetingBlock: {
+  headerCopy: {
     flex: 1,
   },
-  greeting: {
+  heading: {
     fontFamily: 'Poppins_600SemiBold',
     fontSize: 16,
     color: beachPalette.deepNavy,
   },
-  subGreeting: {
-    marginTop: spacing,
+  subheading: {
+    marginTop: spacing * 0.75,
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
     color: `${beachPalette.driftwood}B3`,
@@ -159,17 +157,17 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     borderRadius: 12,
     paddingHorizontal: 10,
-    paddingVertical: spacing,
-    backgroundColor: 'rgba(168,216,234,0.2)',
+    paddingVertical: 6,
+    backgroundColor: 'rgba(30,58,95,0.07)',
   },
   pillText: {
     fontFamily: 'Inter_500Medium',
     fontSize: 12,
     color: beachPalette.deepNavy,
-    letterSpacing: 0.2,
+    letterSpacing: 0.5,
   },
   gaugeContainer: {
-    width: 160,
+    width: 140,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -182,7 +180,7 @@ const styles = StyleSheet.create({
   },
   gaugePercent: {
     fontFamily: 'Inter_500Medium',
-    fontSize: 24,
+    fontSize: 22,
     color: beachPalette.deepNavy,
   },
   gaugeCaption: {
@@ -192,15 +190,14 @@ const styles = StyleSheet.create({
     color: `${beachPalette.driftwood}CC`,
   },
   summaryBlock: {
-    marginTop: spacing * 3,
+    gap: spacing * 1.5,
   },
   weightSummary: {
     fontFamily: 'Inter_400Regular',
     fontSize: 13,
-    color: beachPalette.driftwood,
+    color: `${beachPalette.driftwood}CC`,
   },
   weeklySummary: {
-    marginTop: spacing * 1.5,
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
     color: beachPalette.deepNavy,

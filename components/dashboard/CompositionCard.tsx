@@ -7,10 +7,15 @@ type CompositionStat = {
   value: string;
 };
 
+type HeadlinePart = {
+  text: string;
+  color?: string;
+};
+
 type CompositionCardProps = {
   title: string;
   icon?: ReactNode;
-  headline: ReactNode;
+  headline: HeadlinePart[];
   progress?: number;
   progressColor?: string;
   stats: CompositionStat[];
@@ -34,7 +39,13 @@ export const CompositionCard = ({
         {icon ? <View style={styles.icon}>{icon}</View> : null}
         <Text style={styles.title}>{title}</Text>
       </View>
-      <View style={styles.headline}>{headline}</View>
+      <Text style={styles.headline}>
+        {headline.map((part, index) => (
+          <Text key={`${title}-${index}`} style={[styles.headlinePart, part.color ? { color: part.color } : null]}>
+            {part.text}
+          </Text>
+        ))}
+      </Text>
       {showProgress ? (
         <View style={styles.progressTrack}>
           <View style={[styles.progressFill, { width: `${Math.max(0, Math.min(progress, 1)) * 100}%`, backgroundColor: progressColor }]} />
@@ -57,7 +68,6 @@ const styles = StyleSheet.create({
     backgroundColor: beachPalette.card,
     borderRadius: 16,
     padding: spacing * 2,
-    flex: 1,
   },
   shadow: {
     shadowColor: shadow.shadowColor,
@@ -80,17 +90,26 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'Inter_500Medium',
     fontSize: 12,
-    letterSpacing: 1,
-    color: `${beachPalette.driftwood}B3`,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    color: 'rgba(90,103,114,0.7)',
   },
   headline: {
     marginTop: spacing * 1.5,
+    fontFamily: 'Inter_500Medium',
+    fontSize: 16,
+    color: beachPalette.deepNavy,
+  },
+  headlinePart: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 16,
+    color: beachPalette.deepNavy,
   },
   progressTrack: {
     marginTop: spacing * 2,
     height: 6,
     borderRadius: 12,
-    backgroundColor: `${beachPalette.sandWhite}66`,
+    backgroundColor: 'rgba(168,216,234,0.25)',
     overflow: 'hidden',
   },
   progressFill: {
@@ -108,7 +127,7 @@ const styles = StyleSheet.create({
   statLabel: {
     fontFamily: 'Inter_500Medium',
     fontSize: 12,
-    color: `${beachPalette.driftwood}CC`,
+    color: 'rgba(90,103,114,0.7)',
     letterSpacing: 0.4,
   },
   statValue: {

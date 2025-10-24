@@ -7,10 +7,8 @@ import { useUser } from '../../hooks/useUser';
 import { useReadings } from '../../hooks/useReadings';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { formatDate, formatWeight, formatWeeklyChange, sortReadingsDesc } from '../../utils/format';
-import { countRecentLogs } from '../../utils/logs';
 import { kgToLb } from '../../lib/metrics';
 import { DashboardScreen } from './DashboardScreen';
-import { Reading } from '../../types/db';
 import { beachPalette } from '../../components/dashboard/palette';
 
 const LoadingState = () => {
@@ -37,56 +35,6 @@ const composeMomentumCaption = (weight: string, date?: string) => {
     return `Previously ${weight} on your last check-in.`;
   }
   return `Previously ${weight} on ${date}.`;
-};
-
-const toDateKey = (iso: string) => {
-  const date = new Date(iso);
-  date.setHours(0, 0, 0, 0);
-  return date.toDateString();
-};
-
-const buildConsistencyDays = (readings: Reading[]) => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const uniqueDays = new Set(readings.map((reading) => toDateKey(reading.takenAt)));
-
-  return Array.from({ length: 7 }).map((_, index) => {
-    const date = new Date(today);
-    date.setDate(today.getDate() - (6 - index));
-    const label = date.toLocaleDateString(undefined, { weekday: 'short' });
-    const key = date.toDateString();
-    return { label, filled: uniqueDays.has(key) };
-  });
-};
-
-const longestStreak = (readings: Reading[]) => {
-  if (readings.length === 0) return 0;
-  const uniqueDays = Array.from(new Set(readings.map((reading) => toDateKey(reading.takenAt)))).sort(
-    (a, b) => new Date(a).getTime() - new Date(b).getTime(),
-  );
-  let best = 0;
-  let current = 0;
-  let previousDate: Date | null = null;
-
-  uniqueDays.forEach((day) => {
-    const date = new Date(day);
-    if (!previousDate) {
-      current = 1;
-      best = Math.max(best, current);
-      previousDate = date;
-      return;
-    }
-    const diff = Math.round((date.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24));
-    if (diff === 1) {
-      current += 1;
-    } else {
-      current = 1;
-    }
-    best = Math.max(best, current);
-    previousDate = date;
-  });
-
-  return best;
 };
 
 const convertWeightValue = (weightKg: number, unit: 'imperial' | 'metric') =>
@@ -168,26 +116,9 @@ export const DashboardContent = () => {
           fatDelta > 0 ? 'down' : 'up'
         } from ${fatStart.toFixed(1)} percent.`;
 
-  const muscleScore = analytics.muscleScore ?? 0;
-  const muscleScoreLabel = `${Math.round(muscleScore)} / 100`;
-  const muscleStatus = muscleScore >= 80 ? 'Muscle thriving' : muscleScore >= 60 ? 'Muscle steady' : 'Muscle focus';
-  const muscleTrend = muscleScore >= 70 ? 'Stable' : muscleScore >= 50 ? 'Watch' : 'Rebuild';
-  const muscleProgress = Math.min(1, Math.max(0, muscleScore / 100));
-  const muscleAccessibility = `Muscle tone score ${muscleScoreLabel}. Trend ${muscleTrend}.`;
-
-  const weeklyLogs = analytics.logsThisWeek ?? countRecentLogs(readings);
-  const bestStreak = longestStreak(readings);
-  const consistencyDays = buildConsistencyDays(readings);
-  const consistencyAccessibility = `Logged ${weeklyLogs} of 7 days this week. Best streak ${bestStreak} days. ${consistencyDays
-    .map((day) => `${day.label} ${day.filled ? 'logged' : 'not logged'}`)
-    .join(', ')}.`;
-
   const weeklyActualSeries = (analytics.weeklyActualKg ?? []).map((point) =>
     convertWeightValue(point.weightKg, user.unitSystem),
   );
-  const weeklyPredictedSeries = (analytics.predictedWeights ?? [])
-    .slice(0, weeklyActualSeries.length)
-    .map((point) => convertWeightValue(point.targetWeightKg, user.unitSystem));
 
   const heroSummary =
     weeklyChangeAbsolute < 0.1
@@ -202,7 +133,6 @@ export const DashboardContent = () => {
   return (
     <DashboardScreen
       hero={{
-        name: user.name ?? 'there',
         goalPercent: progressPercent,
         weeklySummary: heroSummary,
         weightSummary: [
@@ -231,35 +161,7 @@ export const DashboardContent = () => {
           ],
           accessibilityLabel: fatAccessibility,
         },
-        {
-          key: 'muscle-tone',
-          title: 'MUSCLE TONE',
-          iconName: 'activity',
-          headline: [{ text: muscleStatus, color: beachPalette.seaGreen }],
-          progress: { value: muscleProgress, color: beachPalette.seaGreen },
-          stats: [
-            { label: 'Score', value: muscleScoreLabel },
-            { label: 'Trend', value: muscleTrend },
-          ],
-          accessibilityLabel: muscleAccessibility,
-        },
       ]}
-      consistency={{
-        loggedSummary: `${Math.min(weeklyLogs, 7)} of 7 days logged this week`,
-        streakSummary: `Best streak: ${bestStreak} day${bestStreak === 1 ? '' : 's'}`,
-        days: consistencyDays,
-        accessibilityLabel: consistencyAccessibility,
-      }}
-      weeklyTrend={
-        weeklyActualSeries.length > 1
-          ? {
-              actual: weeklyActualSeries,
-              predicted: weeklyPredictedSeries,
-              deltaLabel: weeklyChangeLabel,
-              accessibilityLabel: `Weight trend actual versus predicted. ${heroSummary}`,
-            }
-          : undefined
-      }
       footerCopy="Want to update your numbers? Tap Log below."
     />
   );
