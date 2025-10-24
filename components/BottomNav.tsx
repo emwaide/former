@@ -23,7 +23,7 @@ export const BottomNav = ({ state, descriptors, navigation }: BottomTabBarProps)
       style={[
         styles.container,
         {
-          paddingBottom: Math.max(insets.bottom, 16),
+          paddingBottom: Math.max(insets.bottom, 0),
           backgroundColor: tokens.colors.card,
           borderTopColor: tokens.colors.border,
           shadowColor: tokens.colors.softShadow,
@@ -89,7 +89,7 @@ export const BottomNav = ({ state, descriptors, navigation }: BottomTabBarProps)
                   />
                   <Text
                     style={{
-                      marginTop: 6,
+                      marginTop: 2,
                       color: isFocused ? tokens.colors.accentSecondary : inactiveColor,
                       fontFamily: tokens.typography.fontFamilyMedium,
                       fontSize: 12,
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 24,
+    paddingHorizontal: 10,
   },
   tab: {
     flex: 1,

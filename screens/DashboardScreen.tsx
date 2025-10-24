@@ -155,7 +155,7 @@ const DashboardScreen = ({
         contentContainerStyle={[
           styles.content,
           {
-            paddingBottom: Math.max(32, insets.bottom + 48),
+            paddingBottom: Math.max(32, insets.bottom + 0),
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -165,7 +165,7 @@ const DashboardScreen = ({
           locations={[0, 0.55, 1]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
-          style={[styles.hero, { paddingTop: insets.top + 32 }]}
+          style={[styles.hero, { paddingTop: insets.top + 10 }]}
         >
           <LinearGradient
             pointerEvents="none"
@@ -175,43 +175,20 @@ const DashboardScreen = ({
             style={styles.heroHighlight}
           />
           <View style={styles.heroHeader}>
-            <div>
-              <Icon name="repeat" size={20} color={tokens.colors.accentSecondary} accessibilityLabel="app favicon" />
-              <Text
-                style={{
-                  color: 'rgba(23, 51, 74, 0.8)',
-                  fontFamily: tokens.typography.fontFamilyMedium,
-                  fontSize: tokens.typography.caption,
-                  textTransform: 'uppercase',
-                  letterSpacing: 1.6,
-                  paddingLeft: 10
-                }}
-              >
-                FORMER
-              </Text>
-            </div>
-            <View
-              accessibilityLabel="user's streak"
+          </View>
+          <View style={styles.heroCopy}>
+            <Text
               style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.72)',
-                borderRadius: tokens.radius.pill,
-                paddingHorizontal: 16,
-                paddingVertical: 8,
+                color: tokens.colors.text,
+                fontFamily: tokens.typography.fontFamilyAlt,
+                fontSize: 30,
+                lineHeight: 26,
+                letterSpacing: 2,
               }}
             >
-              <Text
-                style={{
-                  color: tokens.colors.accentSecondary,
-                  fontFamily: tokens.typography.fontFamilyMedium,
-                  fontSize: tokens.typography.caption,
-                  letterSpacing: 0.4,
-                }}
-              >
-                5 day streak!
-              </Text>
-            </View>
+              {`Welcome Back, ${userName}!`}
+            </Text>
           </View>
-
           <ProgressRing
             progress={progressValue}
             trackColor="rgba(34, 87, 122, 0.18)"
@@ -240,33 +217,6 @@ const DashboardScreen = ({
               to goal
             </Text>
           </ProgressRing>
-
-          <View style={styles.heroCopy}>
-            <Text
-              style={{
-                color: 'rgba(23, 51, 74, 0.86)',
-                fontFamily: tokens.typography.fontFamilyAlt,
-                fontSize: 20,
-                lineHeight: 26,
-                textAlign: 'center',
-                letterSpacing: -0.2,
-              }}
-            >
-              {`Welcome Back, ${userName}!`}
-            </Text>
-            {/* <Text
-              style={{
-                color: 'rgba(23, 51, 74, 0.6)',
-                fontFamily: tokens.typography.fontFamily,
-                fontSize: tokens.typography.caption,
-                textAlign: 'center',
-                letterSpacing: 0.4,
-              }}
-            >
-              {heroSubline}
-            </Text> */}
-          </View>
-
           <View style={styles.heroStatsRow}>
             {[
               { label: 'Start', value: startWeight },
@@ -311,9 +261,79 @@ const DashboardScreen = ({
                 letterSpacing: 1,
               }}
             >
-              Your Overview
+              This Week's Overview
             </Text>
           </View>
+          <Card
+              accessibilityLabel={`Muscle balance: ${muscleLabel}.`}
+              style={[styles.compositionCard, { backgroundColor: tokens.colors.card }]}
+            >
+              {/* <LinearGradient
+                pointerEvents="none"
+                colors={['rgba(8, 107, 167, 0.18)', 'rgba(8, 107, 167, 0)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.compositionGradient}
+              /> */}
+              <View style={styles.compositionHeader}>
+                <View style={[styles.compositionIcon, { backgroundColor: 'rgba(34, 87, 122, 0.12)' }]}> 
+                  <Icon name="activity" size={20} color={tokens.colors.accentSecondary} accessibilityLabel={muscleLabel} />
+                </View>
+                <Text
+                  style={{
+                    color: tokens.colors.textSecondary,
+                    fontFamily: tokens.typography.fontFamilyMedium,
+                    fontSize: tokens.typography.caption,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.8,
+                  }}
+                >
+                  Muscle Tone
+                </Text>
+              </View>
+              <Text
+                style={{
+                  color: tokens.colors.text,
+                  fontFamily: tokens.typography.fontFamilyAlt,
+                  fontSize: tokens.typography.body,
+                }}
+              >
+                {muscleStatus}
+              </Text>
+              <View style={styles.compositionMeter}>
+                <View style={[styles.compositionMeterTrack, { backgroundColor: 'rgba(34, 87, 122, 0.16)' }]}> 
+                  <View
+                    style={[
+                      styles.compositionMeterFill,
+                      {
+                        width: `${Math.round(muscleNormalized * 100)}%`,
+                        backgroundColor: tokens.colors.accentSecondary,
+                      },
+                    ]}
+                  />
+                </View>
+                <View style={styles.compositionMeterMeta}>
+                  <Text
+                    style={{
+                      color: tokens.colors.text,
+                      fontFamily: tokens.typography.fontFamilyMedium,
+                      fontSize: tokens.typography.caption,
+                    }}
+                  >
+                    Score {muscleScoreLabel}
+                  </Text>
+                  <Text
+                    style={{
+                      color: tokens.colors.textSecondary,
+                      fontFamily: tokens.typography.fontFamily,
+                      fontSize: tokens.typography.caption,
+                    }}
+                  >
+                    Strength trend
+                  </Text>
+                </View>
+              </View>
+            </Card>
 
           <Card
             accessibilityLabel={`This week's change: ${weeklyChangeText}. ${momentumCaption}`}
@@ -329,7 +349,7 @@ const DashboardScreen = ({
                   letterSpacing: 0.5,
                 }}
               >
-                This Week's Change
+                Weight
               </Text>
               <View style={styles.weeklyBadge}>
                 <Text
@@ -365,96 +385,18 @@ const DashboardScreen = ({
             </Text>
           </Card>
 
-          {/* <Card
-            accessibilityLabel={`Weight timeline. Start ${startWeight}. Current ${currentWeight}. Goal ${goalWeight}. ${headerSubtitle}`}
-            style={[styles.timelineCard, { backgroundColor: tokens.colors.card }]}
-          >
-            <View style={styles.timelineHeader}>
-              <Text
-                style={{
-                  color: tokens.colors.textSecondary,
-                  fontFamily: tokens.typography.fontFamilyMedium,
-                  fontSize: tokens.typography.caption,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}
-              >
-                Total Progress
-              </Text>
-              <Text
-                style={{
-                  color: tokens.colors.textSecondary,
-                  fontFamily: tokens.typography.fontFamily,
-                  fontSize: tokens.typography.caption,
-                }}
-              >
-                Goal {goalWeight}
-              </Text>
-            </View>
-
-            <View style={styles.timelineTrackWrapper}>
-              <View style={[styles.timelineTrackBackground, { backgroundColor: 'rgba(34, 87, 122, 0.16)' }]} />
-              <View
-                style={[
-                  styles.timelineTrackFill,
-                  { width: `${timelineProgress}%`, backgroundColor: tokens.colors.accentSecondary },
-                ]}
-              />
-              <View style={styles.timelineMarkersRow}>
-                {timelineSteps.map((step, index) => (
-                  <View key={step.label} style={styles.timelineMarker}>
-                    <View
-                      style={[
-                        styles.timelineDot,
-                        index === 0 && styles.timelineDotStart,
-                        index === timelineSteps.length - 1 && styles.timelineDotGoal,
-                        index === 1 && styles.timelineDotCurrent,
-                      ]}
-                    />
-                  </View>
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.timelineValues}>
-              {timelineSteps.map((row) => (
-                <View key={row.label} style={styles.timelineValue}>
-                  <Text
-                    style={{
-                      color: tokens.colors.textSecondary,
-                      fontFamily: tokens.typography.fontFamilyMedium,
-                      fontSize: tokens.typography.caption,
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    {row.label}
-                  </Text>
-                  <Text
-                    style={{
-                      color: tokens.colors.text,
-                      fontFamily: tokens.typography.fontFamilyAlt,
-                      fontSize: tokens.typography.body,
-                    }}
-                  >
-                    {row.value}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </Card> */}
-
           <View style={styles.compositionRow}>
             <Card
               accessibilityLabel={`Body composition update: ${fatLabel}.`}
               style={[styles.compositionCard, { backgroundColor: tokens.colors.card }]}
             >
-              <LinearGradient
+              {/* <LinearGradient
                 pointerEvents="none"
                 colors={['rgba(34, 87, 122, 0.16)', 'rgba(34, 87, 122, 0)']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.compositionGradient}
-              />
+              /> */}
               <View style={styles.compositionHeader}>
                 <View style={[styles.compositionIcon, { backgroundColor: 'rgba(34, 87, 122, 0.12)' }]}> 
                   <Icon name="trending-down" size={20} color={tokens.colors.accentSecondary} accessibilityLabel={fatLabel} />
@@ -520,13 +462,13 @@ const DashboardScreen = ({
               accessibilityLabel={`Muscle balance: ${muscleLabel}.`}
               style={[styles.compositionCard, { backgroundColor: tokens.colors.card }]}
             >
-              <LinearGradient
+              {/* <LinearGradient
                 pointerEvents="none"
                 colors={['rgba(8, 107, 167, 0.18)', 'rgba(8, 107, 167, 0)']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.compositionGradient}
-              />
+              /> */}
               <View style={styles.compositionHeader}>
                 <View style={[styles.compositionIcon, { backgroundColor: 'rgba(34, 87, 122, 0.12)' }]}> 
                   <Icon name="activity" size={20} color={tokens.colors.accentSecondary} accessibilityLabel={muscleLabel} />
@@ -587,8 +529,7 @@ const DashboardScreen = ({
               </View>
             </Card>
           </View>
-
-          <Button label="+ Log New Entry" onPress={onLogPress} accessibilityLabel="Log a new entry" />
+          <Button label="Log New Entry" onPress={onLogPress} accessibilityLabel="Log a new entry" variant='primary' />
         </View>
       </ScrollView>
     </View>
@@ -619,7 +560,7 @@ const styles = StyleSheet.create({
   heroHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
   },
   heroCopy: {
     gap: 8,
