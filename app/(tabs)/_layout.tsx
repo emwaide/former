@@ -9,7 +9,7 @@ export default function TabLayout() {
       }}
       tabBar={(props) => <BottomNav {...props} />}
     >
-      <Tabs.Screen name="dashboard" options={{ title: 'Dashboard' }} />
+      <Tabs.Screen name="index" options={{ title: 'Index' }} />
       <Tabs.Screen name="trends" options={{ title: 'Trends' }} />
       <Tabs.Screen name="log" options={{ title: 'Log' }} />
       <Tabs.Screen name="insights" options={{ title: 'Insights' }} />
