@@ -96,7 +96,7 @@ export const DashboardContent = () => {
   const router = useRouter();
   const { tokens } = useTheme();
   const { user, loading: loadingUser } = useUser();
-  const { readings, loading: loadingReadings } = useReadings();
+  const { readings, loading: loadingReadings } = useReadings(user?.id);
   const analytics = useAnalytics(user, readings);
   const sorted = useMemo(() => sortReadingsDesc(readings), [readings]);
 

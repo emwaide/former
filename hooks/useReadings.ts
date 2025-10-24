@@ -4,14 +4,21 @@ import { Reading, ReadingInput } from '../types/db';
 
 export const useReadings = (userId?: string) => {
   const [readings, setReadings] = useState<Reading[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !!userId);
 
   const refresh = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setReadings([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    const rows = await listReadings(userId);
-    setReadings(rows);
-    setLoading(false);
+    try {
+      const rows = await listReadings(userId);
+      setReadings(rows);
+    } finally {
+      setLoading(false);
+    }
   }, [userId]);
 
   const add = useCallback(
