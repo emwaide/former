@@ -1,4 +1,4 @@
-import { ReactNode, useMemo } from 'react';
+import { Fragment, ReactNode, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
@@ -15,7 +15,7 @@ type ProgressRingProps = {
 
 const ProgressRing = ({
   progress,
-  size = 204,
+  size = 210,
   strokeWidth = 18,
   children,
   accentGradient,
@@ -42,7 +42,7 @@ const ProgressRing = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="rgba(255,255,255,0.2)"
+          stroke="rgba(255,255,255,0.22)"
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -92,7 +92,7 @@ export const HeroSection = ({
       colors={tokens.colors.heroGradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
-      style={[styles.container, { paddingTop: topInset + 60 }]}
+      style={[styles.container, { paddingTop: topInset + 56 }]}
     >
       <View style={styles.topRow}>
         <View style={styles.copyBlock}>
@@ -111,14 +111,15 @@ export const HeroSection = ({
       </View>
 
       <View style={styles.statsRow} accessibilityRole="text">
-        {[{ label: 'Start', value: startLabel }, { label: 'Now', value: currentLabel }, { label: 'Goal', value: goalLabel }].map(
-          (item) => (
-            <View key={item.label} style={styles.statItem}>
+        {[{ label: 'Start', value: startLabel }, { label: 'Now', value: currentLabel }, { label: 'Goal', value: goalLabel }].map((item, index) => (
+          <Fragment key={item.label}>
+            <View style={styles.statItem}>
               <Text style={styles.statLabel}>{item.label}</Text>
               <Text style={styles.statValue}>{item.value}</Text>
             </View>
-          ),
-        )}
+            {index < 2 ? <View style={styles.statDivider} /> : null}
+          </Fragment>
+        ))}
       </View>
 
       {children ? <View style={styles.ctaContainer}>{children}</View> : null}
@@ -152,25 +153,29 @@ const createStyles = (tokens: ThemeTokens) =>
       fontSize: tokens.typography.heading,
       lineHeight: 34,
       fontFamily: tokens.typography.fontFamilyAlt,
-      letterSpacing: 0.2,
+      letterSpacing: -0.2,
     },
     subheading: {
       color: 'rgba(255,255,255,0.88)',
       fontSize: tokens.typography.body,
       lineHeight: tokens.typography.body * 1.4,
       fontFamily: tokens.typography.fontFamily,
+      letterSpacing: -0.2,
     },
     ringWrapper: {
-      padding: tokens.spacing.sm,
+      padding: 0,
       borderRadius: 999,
-      backgroundColor: 'rgba(255,255,255,0.14)',
+      backgroundColor: 'transparent',
       flexShrink: 0,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     percentLabel: {
       color: '#FFFFFF',
-      fontSize: 48,
+      fontSize: 52,
+      lineHeight: 58,
       fontFamily: tokens.typography.fontFamilyAlt,
-      letterSpacing: -0.5,
+      letterSpacing: -0.6,
     },
     percentCaption: {
       color: 'rgba(255,255,255,0.9)',
@@ -182,6 +187,7 @@ const createStyles = (tokens: ThemeTokens) =>
     statsRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
+      alignItems: 'center',
       backgroundColor: 'rgba(255,255,255,0.22)',
       borderRadius: 20,
       paddingVertical: tokens.spacing.sm,
@@ -191,6 +197,11 @@ const createStyles = (tokens: ThemeTokens) =>
       flex: 1,
       alignItems: 'center',
       gap: 4,
+    },
+    statDivider: {
+      width: StyleSheet.hairlineWidth,
+      height: '70%',
+      backgroundColor: 'rgba(255,255,255,0.35)',
     },
     statLabel: {
       color: 'rgba(255,255,255,0.8)',

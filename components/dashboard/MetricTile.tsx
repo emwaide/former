@@ -18,6 +18,31 @@ export type MetricTileProps = {
 
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 
+const withAlpha = (color: string, alpha: number) => {
+  if (color.startsWith('rgb')) {
+    const values = color
+      .replace(/rgba?\(/, '')
+      .replace(')', '')
+      .split(',')
+      .map((value) => parseFloat(value.trim()));
+    const [r = 0, g = 0, b = 0] = values.slice(0, 3);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  const sanitized = color.replace('#', '');
+  const expanded =
+    sanitized.length === 3
+      ? sanitized
+          .split('')
+          .map((char) => char + char)
+          .join('')
+      : sanitized;
+  const bigint = parseInt(expanded, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 const toneColor = (tokens: ThemeTokens, tone: MetricTone = 'neutral') => {
   switch (tone) {
     case 'positive':
@@ -42,6 +67,10 @@ export const MetricTile = ({
   const { tokens } = useTheme();
   const styles = useMemo(() => createStyles(tokens), [tokens]);
   const deltaColor = toneColor(tokens, tone);
+  const deltaBackground =
+    tone === 'neutral'
+      ? withAlpha(tokens.colors.brandMid, 0.12)
+      : withAlpha(deltaColor, 0.16);
 
   return (
     <View
@@ -54,13 +83,15 @@ export const MetricTile = ({
         <Feather
           name="arrow-up-right"
           size={16}
-          color={tokens.colors.accentSecondary}
+          color={tokens.colors.textSubtle}
           accessibilityElementsHidden
           importantForAccessibility="no"
         />
       </View>
       <Text style={styles.value}>{valueLabel}</Text>
-      <Text style={[styles.delta, { color: deltaColor }]}>{deltaLabel}</Text>
+      <View style={[styles.deltaBadge, { backgroundColor: deltaBackground }]}>
+        <Text style={[styles.deltaText, { color: deltaColor }]}>{deltaLabel}</Text>
+      </View>
       <Text style={styles.meta}>{metaLabel}</Text>
       <View style={styles.barTrack}>
         <View style={[styles.barFill, { width: `${clamp(progress) * 100}%`, backgroundColor: accentColor }]} />
@@ -100,12 +131,19 @@ const createStyles = (tokens: ThemeTokens) =>
     },
     value: {
       color: tokens.colors.brandNavy,
-      fontSize: 30,
-      lineHeight: 36,
+      fontSize: 34,
+      lineHeight: 40,
       fontFamily: tokens.typography.fontFamilyAlt,
       letterSpacing: -0.2,
     },
-    delta: {
+    deltaBadge: {
+      marginTop: tokens.spacing.xs,
+      alignSelf: 'flex-start',
+      paddingHorizontal: tokens.spacing.sm,
+      paddingVertical: 4,
+      borderRadius: tokens.radius.pill,
+    },
+    deltaText: {
       fontSize: tokens.typography.body,
       fontFamily: tokens.typography.fontFamilyMedium,
     },
@@ -114,11 +152,12 @@ const createStyles = (tokens: ThemeTokens) =>
       fontSize: tokens.typography.caption,
       lineHeight: tokens.typography.caption * 1.4,
       fontFamily: tokens.typography.fontFamily,
+      marginTop: tokens.spacing.xs,
     },
     barTrack: {
       height: 6,
       borderRadius: 8,
-      backgroundColor: tokens.colors.aquaSoft,
+      backgroundColor: withAlpha(tokens.colors.aquaSoft, 0.4),
       overflow: 'hidden',
       marginTop: tokens.spacing.sm,
     },

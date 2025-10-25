@@ -392,7 +392,7 @@ export const DashboardContent = ({
         contentContainerStyle={themed.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={themed.heroCard}>
+        <View style={themed.heroSpacing}>
           <HeroSection
             name={user.name}
             startLabel={startWeightLabel}
@@ -452,13 +452,11 @@ export const DashboardContent = ({
         ) : null}
 
         <View style={themed.sectionSpacing}>
-          <CardShell tokens={tokens} accentCorner="bottomLeft">
-            <StreakCard
-              loggedDays={loggedDays}
-              loggedCount={Math.min(loggedCount, 7)}
-              onViewHistory={() => router.push('/(tabs)/trends')}
-            />
-          </CardShell>
+          <StreakCard
+            loggedDays={loggedDays}
+            loggedCount={Math.min(loggedCount, 7)}
+            onViewHistory={() => router.push('/(tabs)/trends')}
+          />
         </View>
 
         <View style={{ height: 80 + Math.max(insets.bottom, 0) }} />
@@ -516,7 +514,7 @@ const stylesShared = {
     backgroundColor: tokens.colors.card,
     padding: tokens.spacing.lg,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: withAlpha(tokens.colors.mutedBorder, 0.8),
+    borderColor: withAlpha(tokens.colors.aquaSoft, 0.45),
     shadowColor: tokens.colors.shadow,
     shadowOpacity: 1,
     shadowRadius: 12,
@@ -531,7 +529,7 @@ const stylesShared = {
     width: 24,
     height: 24,
     borderBottomLeftRadius: 24,
-    backgroundColor: withAlpha(tokens.colors.accentSecondary, 0.06),
+    backgroundColor: withAlpha(tokens.colors.brandLight, 0.12),
   }),
   cornerAccentBottomLeft: (tokens: ThemeTokens) => ({
     position: 'absolute',
@@ -540,17 +538,17 @@ const stylesShared = {
     width: 24,
     height: 24,
     borderTopRightRadius: 24,
-    backgroundColor: withAlpha(tokens.colors.accentSecondary, 0.06),
+    backgroundColor: withAlpha(tokens.colors.brandLight, 0.12),
   }),
   guidanceCardOuter: (tokens: ThemeTokens) => ({
     borderRadius: 20,
     padding: tokens.spacing.md,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: withAlpha(tokens.colors.accentSecondary, 0.22),
+    borderColor: withAlpha(tokens.colors.brandMid, 0.25),
     backgroundColor:
       tokens.mode === 'dark'
-        ? withAlpha(tokens.colors.accentSecondary, 0.18)
-        : withAlpha(tokens.colors.accentTertiary, 0.18),
+        ? withAlpha(tokens.colors.brandMid, 0.2)
+        : withAlpha(tokens.colors.aquaSoft, 0.32),
   }),
 };
 
@@ -562,7 +560,7 @@ const createStyles = (tokens: ThemeTokens, insets: { top: number; bottom: number
     },
     scrollContainer: {
       paddingHorizontal: tokens.spacing.md,
-      paddingTop: insets.top + tokens.spacing.lg,
+      paddingTop: tokens.spacing.sm,
       paddingBottom: tokens.spacing.lg + Math.max(insets.bottom, tokens.spacing.sm),
       gap: tokens.spacing.xl,
     },
@@ -585,18 +583,8 @@ const createStyles = (tokens: ThemeTokens, insets: { top: number; bottom: number
       borderColor: withAlpha(tokens.colors.mutedBorder, 0.5),
       overflow: 'hidden',
     },
-    heroCard: {
-      borderRadius: 44,
-      backgroundColor: tokens.colors.card,
-      paddingBottom: tokens.spacing.lg,
-      shadowColor: tokens.colors.shadow,
-      shadowOpacity: 1,
-      shadowRadius: 24,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 4,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: withAlpha(tokens.colors.mutedBorder, 0.5),
-      overflow: 'hidden',
+    heroSpacing: {
+      marginBottom: tokens.spacing.xl,
     },
     sectionSpacing: {
       gap: tokens.spacing.md,

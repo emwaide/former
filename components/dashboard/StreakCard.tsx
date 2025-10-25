@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ThemeTokens, useTheme } from '../../theme';
 
 type StreakCardProps = {
@@ -24,52 +25,71 @@ export const StreakCard = ({ loggedDays, loggedCount, onViewHistory }: StreakCar
   }, [loggedDays]);
 
   return (
-    <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <Text style={styles.title}>Consistency</Text>
-        {onViewHistory ? (
-          <Pressable accessibilityRole="button" onPress={onViewHistory} hitSlop={8}>
-            <Text style={styles.linkText}>View history →</Text>
-          </Pressable>
-        ) : null}
-      </View>
-
-      <View style={styles.summaryRow} accessibilityRole="text" accessibilityLabel={`This week ${loggedCount} of 7 days logged`}>
-        <Text style={styles.summaryLabel}>This week</Text>
-        <Text style={styles.summaryValue}>{`${loggedCount} of 7 days`}</Text>
-      </View>
-
-      <View
-        style={styles.barsRow}
-        accessibilityRole="image"
-        accessibilityLabel={`${loggedCount} days logged this week`}
+    <View style={styles.wrapper}>
+      <LinearGradient
+        colors={tokens.colors.streakGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.card}
       >
-        {loggedDays.map((day, index) => (
-          <View key={index} style={[styles.bar, day ? styles.barFilled : null]} />
-        ))}
-      </View>
+        <View style={styles.headerRow}>
+          <Text style={styles.title}>Consistency</Text>
+          {onViewHistory ? (
+            <Pressable accessibilityRole="button" onPress={onViewHistory} hitSlop={8}>
+              <Text style={styles.linkText}>View history →</Text>
+            </Pressable>
+          ) : null}
+        </View>
 
-      <Text style={styles.caption}>
-        {`You’re on a ${currentStreak}-day streak. Small, regular actions create lasting change.`}
-      </Text>
+        <View
+          style={styles.summaryBlock}
+          accessibilityRole="text"
+          accessibilityLabel={`This week ${loggedCount} of 7 days logged`}
+        >
+          <Text style={styles.summaryLabel}>This week</Text>
+          <Text style={styles.summaryValue}>{`${loggedCount} of 7 days logged`}</Text>
+        </View>
+
+        <View
+          style={styles.dotsRow}
+          accessibilityRole="image"
+          accessibilityLabel={`${loggedCount} days logged this week`}
+        >
+          {loggedDays.map((day, index) => (
+            <View key={index} style={[styles.dot, day ? styles.dotFilled : styles.dotEmpty]}>
+              {day ? <View style={styles.dotInner} /> : null}
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.footerRow}>
+          <View style={styles.streakBadge}>
+            <Text style={styles.streakBadgeText}>{`${currentStreak}-day streak`}</Text>
+          </View>
+          <Text style={styles.caption}>Consistency builds momentum.</Text>
+        </View>
+      </LinearGradient>
     </View>
   );
 };
 
 const createStyles = (tokens: ThemeTokens) =>
   StyleSheet.create({
+    wrapper: {
+      borderRadius: tokens.radius.card,
+      shadowColor: tokens.colors.shadow,
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 1,
+      shadowRadius: 22,
+      elevation: 6,
+    },
     card: {
-      backgroundColor: tokens.colors.card,
       borderRadius: tokens.radius.card,
       padding: tokens.spacing.lg,
-      gap: tokens.spacing.md,
+      gap: tokens.spacing.lg,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: tokens.colors.mutedBorder,
-      shadowColor: tokens.colors.shadow,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 1,
-      shadowRadius: 12,
-      elevation: 3,
+      borderColor: 'rgba(255,255,255,0.28)',
+      overflow: 'hidden',
     },
     headerRow: {
       flexDirection: 'row',
@@ -77,49 +97,82 @@ const createStyles = (tokens: ThemeTokens) =>
       alignItems: 'center',
     },
     title: {
-      color: tokens.colors.brandNavy,
+      color: '#FFFFFF',
       fontSize: tokens.typography.subheading,
       fontFamily: tokens.typography.fontFamilyAlt,
     },
     linkText: {
-      color: tokens.colors.textSubtle,
+      color: 'rgba(255,255,255,0.85)',
       fontSize: tokens.typography.caption,
       fontFamily: tokens.typography.fontFamilyMedium,
     },
-    summaryRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+    summaryBlock: {
+      gap: 4,
     },
     summaryLabel: {
-      color: tokens.colors.textSecondary,
+      color: 'rgba(255,255,255,0.72)',
       fontSize: tokens.typography.body,
       fontFamily: tokens.typography.fontFamilyMedium,
     },
     summaryValue: {
-      color: tokens.colors.brandNavy,
+      color: '#FFFFFF',
       fontSize: tokens.typography.subheading,
       fontFamily: tokens.typography.fontFamilyAlt,
     },
-    barsRow: {
+    dotsRow: {
       flexDirection: 'row',
-      gap: tokens.spacing.xs,
-      marginTop: tokens.spacing.sm,
+      gap: tokens.spacing.sm,
+      marginTop: tokens.spacing.md,
     },
-    bar: {
-      flex: 1,
-      height: 10,
-      borderRadius: 6,
-      backgroundColor: tokens.colors.aquaSoft,
+    dot: {
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      borderWidth: 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'transparent',
     },
-    barFilled: {
-      backgroundColor: tokens.colors.accentSecondary,
+    dotEmpty: {
+      borderColor: 'rgba(255,255,255,0.38)',
+    },
+    dotFilled: {
+      borderColor: 'rgba(255,255,255,0.9)',
+      backgroundColor: 'rgba(255,255,255,0.22)',
+    },
+    dotInner: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: '#FFFFFF',
+    },
+    footerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: tokens.spacing.lg,
+      gap: tokens.spacing.md,
+    },
+    streakBadge: {
+      paddingHorizontal: tokens.spacing.md,
+      paddingVertical: 6,
+      borderRadius: tokens.radius.pill,
+      backgroundColor: 'rgba(255,255,255,0.24)',
+    },
+    streakBadgeText: {
+      color: '#FFFFFF',
+      fontSize: tokens.typography.caption,
+      fontFamily: tokens.typography.fontFamilyMedium,
+      letterSpacing: 0.6,
+      textTransform: 'uppercase',
     },
     caption: {
-      color: tokens.colors.textSecondary,
+      color: 'rgba(255,255,255,0.82)',
       fontSize: tokens.typography.body,
       lineHeight: tokens.typography.body * 1.4,
       fontFamily: tokens.typography.fontFamily,
+      flex: 1,
+      textAlign: 'right',
     },
   });
 
