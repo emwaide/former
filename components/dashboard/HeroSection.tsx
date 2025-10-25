@@ -15,8 +15,8 @@ type ProgressRingProps = {
 
 const ProgressRing = ({
   progress,
-  size = 208,
-  strokeWidth = 16,
+  size = 204,
+  strokeWidth = 18,
   children,
   accentGradient,
 }: ProgressRingProps & { accentGradient: [string, string] }) => {
@@ -42,7 +42,7 @@ const ProgressRing = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="rgba(255,255,255,0.3)"
+          stroke="rgba(255,255,255,0.2)"
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -94,17 +94,21 @@ export const HeroSection = ({
       end={{ x: 0, y: 1 }}
       style={[styles.container, { paddingTop: topInset + 60 }]}
     >
-      <View>
-        <Text accessibilityRole="header" style={styles.heading}>
-          {`Hi ${name} — here’s your progress this week.`}
-        </Text>
-        <Text style={styles.subheading}>{`Currently ${currentLabel} · aiming for ${goalLabel}`}</Text>
-      </View>
+      <View style={styles.topRow}>
+        <View style={styles.copyBlock}>
+          <Text accessibilityRole="header" style={styles.heading}>
+            {`Hi ${name} — here’s your progress this week.`}
+          </Text>
+          <Text style={styles.subheading}>{`Currently ${currentLabel} · aiming for ${goalLabel}`}</Text>
+        </View>
 
-      <ProgressRing progress={progressFraction} accentGradient={tokens.colors.ringGradient}>
-        <Text style={styles.percentLabel}>{`${percent}%`}</Text>
-        <Text style={styles.percentCaption}>to goal</Text>
-      </ProgressRing>
+        <View style={styles.ringWrapper} accessibilityRole="image" accessibilityLabel={`${percent}% to goal`}>
+          <ProgressRing progress={progressFraction} accentGradient={tokens.colors.ringGradient}>
+            <Text style={styles.percentLabel}>{`${percent}%`}</Text>
+            <Text style={styles.percentCaption}>to goal</Text>
+          </ProgressRing>
+        </View>
+      </View>
 
       <View style={styles.statsRow} accessibilityRole="text">
         {[{ label: 'Start', value: startLabel }, { label: 'Now', value: currentLabel }, { label: 'Goal', value: goalLabel }].map(
@@ -132,6 +136,17 @@ const createStyles = (tokens: ThemeTokens) =>
       gap: tokens.spacing.lg,
       marginHorizontal: -tokens.spacing.md,
     },
+    topRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: tokens.spacing.lg,
+    },
+    copyBlock: {
+      flex: 1,
+      gap: tokens.spacing.xs,
+    },
     heading: {
       color: '#FFFFFF',
       fontSize: tokens.typography.heading,
@@ -144,7 +159,12 @@ const createStyles = (tokens: ThemeTokens) =>
       fontSize: tokens.typography.body,
       lineHeight: tokens.typography.body * 1.4,
       fontFamily: tokens.typography.fontFamily,
-      marginTop: tokens.spacing.xs,
+    },
+    ringWrapper: {
+      padding: tokens.spacing.sm,
+      borderRadius: 999,
+      backgroundColor: 'rgba(255,255,255,0.14)',
+      flexShrink: 0,
     },
     percentLabel: {
       color: '#FFFFFF',
@@ -168,6 +188,7 @@ const createStyles = (tokens: ThemeTokens) =>
       paddingHorizontal: tokens.spacing.lg,
     },
     statItem: {
+      flex: 1,
       alignItems: 'center',
       gap: 4,
     },

@@ -7,7 +7,6 @@ import {
   Text,
   View,
   ViewStyle,
-  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -550,8 +549,8 @@ const stylesShared = {
     borderColor: withAlpha(tokens.colors.accentSecondary, 0.22),
     backgroundColor:
       tokens.mode === 'dark'
-        ? withAlpha(tokens.colors.brandLight, 0.12)
-        : withAlpha(tokens.colors.brandLight, 0.08),
+        ? withAlpha(tokens.colors.accentSecondary, 0.18)
+        : withAlpha(tokens.colors.accentTertiary, 0.18),
   }),
 };
 
@@ -610,7 +609,7 @@ const createStyles = (tokens: ThemeTokens, insets: { top: number; bottom: number
     sectionHeaderText: {
       color: tokens.colors.brandNavy,
       fontSize: 16,
-      fontWeight: '500',
+      fontFamily: tokens.typography.fontFamilyAlt,
       letterSpacing: -0.02,
     },
     sectionHeaderRule: {
@@ -624,6 +623,6 @@ const createStyles = (tokens: ThemeTokens, insets: { top: number; bottom: number
       color: tokens.colors.textSecondary,
       marginBottom: tokens.spacing.sm,
       letterSpacing: 0.5,
-      fontWeight: Platform.select({ ios: '500', android: '500', default: '500' }),
+      fontFamily: tokens.typography.fontFamilyMedium,
     },
   });

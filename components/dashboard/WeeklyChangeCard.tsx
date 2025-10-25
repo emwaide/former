@@ -41,20 +41,21 @@ export const WeeklyChangeCard = ({ changeLabel, changeValue, subtext, data }: We
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
-        <Text style={styles.title}>This Week’s Change</Text>
+        <Text style={styles.title}>Weight trend</Text>
         <Link href="/(tabs)/trends" style={styles.link} accessibilityRole="link">
           <Text style={styles.linkText}>View in Trends →</Text>
         </Link>
       </View>
 
       <View style={styles.metricRow}>
-        <View>
+        <View style={styles.metricCopy}>
+          <Text style={styles.metricLabel}>This week</Text>
           <Text style={[styles.metricValue, { color: strokeColor }]}>{changeLabel}</Text>
           <Text style={styles.metricCaption}>{subtext}</Text>
         </View>
         <View accessible accessibilityLabel="7 day weight trend" style={styles.sparklineWrapper}>
           <Svg width="100%" height="100%" viewBox="0 0 120 48" preserveAspectRatio="none">
-            <Path d={buildSparklinePath(data, 120, 48)} stroke={tokens.colors.brandMid} strokeWidth={2} fill="none" />
+            <Path d={buildSparklinePath(data, 120, 48)} stroke={tokens.colors.accentSecondary} strokeWidth={2} fill="none" />
           </Svg>
         </View>
       </View>
@@ -69,6 +70,8 @@ const createStyles = (tokens: ThemeTokens) =>
       borderRadius: tokens.radius.card,
       padding: tokens.spacing.lg,
       gap: tokens.spacing.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: tokens.colors.mutedBorder,
       shadowColor: tokens.colors.shadow,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 1,
@@ -99,6 +102,17 @@ const createStyles = (tokens: ThemeTokens) =>
       alignItems: 'center',
       gap: tokens.spacing.lg,
     },
+    metricCopy: {
+      flex: 1,
+      gap: tokens.spacing.xs,
+    },
+    metricLabel: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.typography.caption,
+      fontFamily: tokens.typography.fontFamilyMedium,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
     metricValue: {
       fontSize: 32,
       fontFamily: tokens.typography.fontFamilyAlt,
@@ -110,11 +124,13 @@ const createStyles = (tokens: ThemeTokens) =>
       fontSize: tokens.typography.body,
       lineHeight: tokens.typography.body * 1.4,
       fontFamily: tokens.typography.fontFamily,
-      marginTop: tokens.spacing.xs,
     },
     sparklineWrapper: {
       width: 120,
       height: 48,
+      backgroundColor: tokens.colors.aquaSoft,
+      borderRadius: 12,
+      padding: tokens.spacing.xs,
     },
   });
 

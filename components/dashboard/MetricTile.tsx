@@ -54,7 +54,7 @@ export const MetricTile = ({
         <Feather
           name="arrow-up-right"
           size={16}
-          color={tokens.colors.textSubtle}
+          color={tokens.colors.accentSecondary}
           accessibilityElementsHidden
           importantForAccessibility="no"
         />
@@ -74,10 +74,12 @@ const createStyles = (tokens: ThemeTokens) =>
     card: {
       backgroundColor: tokens.colors.card,
       borderRadius: tokens.radius.card,
-      padding: tokens.spacing.md,
+      padding: tokens.spacing.lg,
       gap: tokens.spacing.sm,
       flex: 1,
-      minWidth: 150,
+      minWidth: 160,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: tokens.colors.mutedBorder,
       shadowColor: tokens.colors.shadow,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 1,
@@ -97,8 +99,9 @@ const createStyles = (tokens: ThemeTokens) =>
       textTransform: 'uppercase',
     },
     value: {
-      color: tokens.colors.text,
-      fontSize: 24,
+      color: tokens.colors.brandNavy,
+      fontSize: 30,
+      lineHeight: 36,
       fontFamily: tokens.typography.fontFamilyAlt,
       letterSpacing: -0.2,
     },
@@ -115,7 +118,7 @@ const createStyles = (tokens: ThemeTokens) =>
     barTrack: {
       height: 6,
       borderRadius: 8,
-      backgroundColor: tokens.colors.mutedBorder,
+      backgroundColor: tokens.colors.aquaSoft,
       overflow: 'hidden',
       marginTop: tokens.spacing.sm,
     },
