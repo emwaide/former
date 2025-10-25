@@ -5,8 +5,8 @@ Former is an Expo + React Native experience focused on a calm, data-rich journey
 ## Architecture overview
 
 - **App shell**: Expo Router with a stack root and bottom tabs (`app/_layout.tsx`, `app/(tabs)/*`). Each screen renders a `DashboardContent`-style component with polished layouts.
-- **Theming & tokens**: `theme/tokens.ts` defines the complete light/dark palettes, typography, radii, spacing, and motion values. `ThemeProvider` exposes a `useTheme()` hook for components to read tokens and toggle schemes.
-- **UI Kit**: Reusable primitives live in `components/` (Card, Screen, Stack, ProgressBar, Gauge, MiniLineChart, Chip, TextField, Button, etc.). Components accept tokens from `useTheme` and include accessibility props.
+- **Styling**: Tailwind via NativeWind drives all layout, color, and typography. `ThemeProvider` syncs the system/light/dark scheme with NativeWind so class-based variants respond instantly.
+- **UI Kit**: Reusable primitives live in `components/` (Card, Screen, Stack, ProgressBar, Gauge, MiniLineChart, Chip, TextField, Button, etc.) and are composed entirely with Tailwind classes for fast iteration.
 - **Data layer**: Expo SQLite helpers in `db/init.ts` and `db/dao.ts` manage migrations and CRUD. `db/seed.ts` synthesises 12 weeks of demo readings for Emily.
 - **Hooks**: `hooks/useUser`, `useReadings`, and `useAnalytics` abstract database access and computed metrics so screens remain declarative.
 - **Metrics utilities**: `lib/metrics.ts` contains the conversion and analytic formulas requested (BMI, taper curve, muscle preservation score, hydration flag, etc.).
@@ -33,20 +33,19 @@ hooks/
 lib/
   metrics.ts
 theme/
-  tokens.ts, ThemeProvider.tsx
+  ThemeProvider.tsx
 utils/
   format.ts
 tests/
   harness.ts, metrics.test.ts, dashboard.test.ts, run-tests.ts
 ```
 
-## Theming & design tokens
+## Styling system
 
-- Palette anchors navy, sky, mint, cream, and coral with dark-mode complements.
-- Typography favours Poppins with dedicated numeric sizes for hero metrics.
-- Radii (24 card / 12 input / pill) and spacing scale (4…32) flow through every component.
-- Motion tokens keep tap feedback snappy (180–220ms) and cards softly elevated.
-- `useTheme()` exposes tokens plus a color scheme setter; Settings allows toggling modes.
+- Tailwind classes (via NativeWind) express the calm medical palette, rounded surfaces, and generous spacing described in the design brief.
+- Typography leans on Poppins weights (regular/medium/semibold) set through Tailwind’s arbitrary `font-[...]` utilities.
+- Shadows, radii, and spacing values live in `tailwind.config.js` so updates propagate instantly across the app.
+- The `ThemeProvider` only manages the light/dark preference and feeds it to NativeWind; Settings exposes a toggle for manual overrides.
 
 ## Data model & SQLite
 
@@ -61,7 +60,7 @@ tests/
 - **Card**: Shadowed surfaces with optional gradients and press states.
 - **Stack helpers**: `HStack`, `VStack`, `Spacer` for consistent spacing.
 - **Charts**: SVG-based `MiniLineChart` (actual vs predicted), `Gauge` (muscle score), `StackedBar` (fat vs lean).
-- **Inputs**: Token-aware `TextField`, `NumberField`, `Stepper`, `Chip` groups for filters and toggles.
+- **Inputs**: Tailwind-styled `TextField`, `NumberField`, `Stepper`, and `Chip` groups for filters and toggles.
 - **Feedback**: `ProgressBar`, `MetricNumber`, `EmptyState`, `Toast` for interaction cues.
 
 ## Screens

@@ -1,11 +1,9 @@
-import { useMemo } from 'react';
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { ThemeTokens, useTheme } from '../../theme';
+import { Text, View, ViewProps } from 'react-native';
 
 export type MetricTone = 'positive' | 'negative' | 'neutral';
 
-export type MetricTileProps = {
+export type MetricTileProps = ViewProps & {
   label: string;
   value: string;
   unit: string;
@@ -14,19 +12,9 @@ export type MetricTileProps = {
   accentColor: string;
   tone?: MetricTone;
   icon?: keyof typeof Feather.glyphMap;
-  style?: StyleProp<ViewStyle>;
 };
 
 const withAlpha = (color: string, alpha: number) => {
-  if (color.startsWith('rgb')) {
-    const values = color
-      .replace(/rgba?\(/, '')
-      .replace(')', '')
-      .split(',')
-      .map((value) => parseFloat(value.trim()));
-    const [r = 0, g = 0, b = 0] = values.slice(0, 3);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  }
   const sanitized = color.replace('#', '');
   const expanded =
     sanitized.length === 3
@@ -42,15 +30,10 @@ const withAlpha = (color: string, alpha: number) => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-const toneColor = (tokens: ThemeTokens, tone: MetricTone = 'neutral') => {
-  switch (tone) {
-    case 'positive':
-      return tokens.colors.accent;
-    case 'negative':
-      return tokens.colors.danger;
-    default:
-      return tokens.colors.textSecondary;
-  }
+const toneColor = (tone: MetricTone = 'neutral') => {
+  if (tone === 'positive') return '#0EC4A6';
+  if (tone === 'negative') return '#F87171';
+  return '#4B5563';
 };
 
 export const MetricTile = ({
@@ -62,103 +45,39 @@ export const MetricTile = ({
   accentColor,
   tone = 'neutral',
   icon = 'activity',
-  style,
-}: MetricTileProps) => {
-  const { tokens } = useTheme();
-  const styles = useMemo(() => createStyles(tokens), [tokens]);
-  const deltaColor = toneColor(tokens, tone);
-
-  return (
-    <View
-      style={[styles.card, style]}
-      accessibilityRole="summary"
-      accessibilityLabel={`${label} ${value} ${unit}. ${deltaLabel}. ${metaLabel}`}
-    >
-      <View style={styles.header}>
-        <Text style={styles.label}>{label}</Text>
-        <View style={[styles.iconBadge, { backgroundColor: withAlpha(accentColor, 0.12) }]}
-          accessibilityElementsHidden
-          importantForAccessibility="no"
-        >
-          <Feather name={icon} size={16} color={accentColor} />
-        </View>
+  className = '',
+  ...rest
+}: MetricTileProps) => (
+  <View
+    {...rest}
+    className={`flex-1 rounded-card border border-[rgba(17,24,39,0.08)] bg-surface p-6 shadow-soft ${className}`}
+    accessibilityRole="summary"
+    accessibilityLabel={`${label} ${value} ${unit}. ${deltaLabel}. ${metaLabel}`}
+  >
+    <View className="mb-3 flex-row items-center justify-between">
+      <Text className="text-[13px] font-[Poppins_500Medium] uppercase tracking-[1px] text-muted">{label}</Text>
+      <View
+        className="h-8 w-8 items-center justify-center rounded-[12px]"
+        style={{ backgroundColor: withAlpha(accentColor, 0.12) }}
+        accessibilityElementsHidden
+        importantForAccessibility="no"
+      >
+        <Feather name={icon} size={16} color={accentColor} />
       </View>
-      <View style={styles.valueRow}>
-        <Text style={styles.value}>{value}</Text>
-        {unit ? <Text style={styles.unit}>{unit}</Text> : null}
-      </View>
-      <Text style={[styles.deltaText, { color: deltaColor }]}>{deltaLabel}</Text>
-      <Text style={styles.meta}>{metaLabel}</Text>
     </View>
-  );
-};
 
-const createStyles = (tokens: ThemeTokens) =>
-  StyleSheet.create({
-    card: {
-      backgroundColor: tokens.colors.card,
-      borderRadius: tokens.radius.card,
-      padding: tokens.spacing.lg,
-      gap: tokens.spacing.sm,
-      flex: 1,
-      minWidth: 160,
-      borderWidth: 1,
-      borderColor: withAlpha(tokens.colors.text, 0.08),
-      shadowColor: tokens.colors.shadow,
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 1,
-      shadowRadius: 14,
-      elevation: 4,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    label: {
-      color: tokens.colors.textSecondary,
-      fontSize: tokens.typography.caption,
-      fontFamily: tokens.typography.fontFamilyMedium,
-      letterSpacing: 0.8,
-      textTransform: 'uppercase',
-    },
-    iconBadge: {
-      width: 32,
-      height: 32,
-      borderRadius: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    valueRow: {
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-      gap: tokens.spacing.xs,
-    },
-    value: {
-      color: tokens.colors.text,
-      fontSize: 30,
-      lineHeight: 34,
-      fontFamily: tokens.typography.fontFamilyAlt,
-      letterSpacing: -0.3,
-    },
-    unit: {
-      color: tokens.colors.textSecondary,
-      fontSize: tokens.typography.caption,
-      textTransform: 'uppercase',
-      letterSpacing: 1,
-      fontFamily: tokens.typography.fontFamilyMedium,
-    },
-    meta: {
-      color: tokens.colors.textSubtle,
-      fontSize: tokens.typography.caption,
-      lineHeight: tokens.typography.caption * 1.4,
-      fontFamily: tokens.typography.fontFamily,
-      marginTop: tokens.spacing.xs,
-    },
-    deltaText: {
-      fontSize: tokens.typography.body,
-      fontFamily: tokens.typography.fontFamilyMedium,
-    },
-  });
+    <View className="mb-2 flex-row items-end gap-2">
+      <Text className="text-[30px] font-[Poppins_600SemiBold] leading-[34px] text-charcoal">{value}</Text>
+      {unit ? (
+        <Text className="pb-1 text-[13px] font-[Poppins_500Medium] uppercase tracking-[1px] text-muted">{unit}</Text>
+      ) : null}
+    </View>
+
+    <Text className="text-[16px] font-[Poppins_500Medium]" style={{ color: toneColor(tone) }}>
+      {deltaLabel}
+    </Text>
+    <Text className="mt-2 text-[13px] font-[Poppins_400Regular] leading-relaxed text-muted">{metaLabel}</Text>
+  </View>
+);
 
 export default MetricTile;

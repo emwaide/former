@@ -1,43 +1,28 @@
 import { forwardRef, useState } from 'react';
-import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
-import { useTheme } from '../theme';
+import { Text, TextInput, TextInputProps, View } from 'react-native';
 
 export type TextFieldProps = TextInputProps & {
   label?: string;
   error?: string;
 };
 
-export const TextField = forwardRef<TextInput, TextFieldProps>(({ label, error, style, ...rest }, ref) => {
-  const { tokens } = useTheme();
+export const TextField = forwardRef<TextInput, TextFieldProps>(({ label, error, className = '', ...rest }, ref) => {
   const [focused, setFocused] = useState(false);
+
   return (
-    <View style={styles.container}>
+    <View className="w-full">
       {label ? (
-        <Text
-          style={{
-            fontSize: tokens.typography.label,
-            color: tokens.colors.textSecondary,
-            fontFamily: tokens.typography.fontFamilyAlt,
-            marginBottom: tokens.spacing.xs,
-          }}
-        >
+        <Text className="mb-2 text-[13px] font-[Poppins_600SemiBold] uppercase tracking-[1px] text-muted">
           {label}
         </Text>
       ) : null}
+
       <TextInput
         ref={ref}
-        placeholderTextColor={tokens.colors.textSecondary}
-        style={[
-          styles.input,
-          {
-            borderColor: focused ? tokens.colors.accent : tokens.colors.mutedBorder,
-            color: tokens.colors.text,
-            backgroundColor: tokens.colors.surface,
-            borderRadius: tokens.radius.input,
-            fontFamily: tokens.typography.fontFamily,
-          },
-          style,
-        ]}
+        placeholderTextColor="#9CA3AF"
+        className={`w-full rounded-[12px] border bg-surface px-4 py-3 text-[16px] font-[Poppins_400Regular] text-charcoal ${
+          focused ? 'border-teal' : 'border-[#E5EDF2]'
+        } ${className}`}
         onFocus={(event) => {
           setFocused(true);
           rest.onFocus?.(event);
@@ -48,22 +33,12 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(({ label, error, 
         }}
         {...rest}
       />
+
       {error ? (
-        <Text style={{ color: tokens.colors.danger, marginTop: 4, fontSize: 12 }}>{error}</Text>
+        <Text className="mt-1 text-[12px] font-[Poppins_400Regular] text-negative">{error}</Text>
       ) : null}
     </View>
   );
 });
 
 TextField.displayName = 'TextField';
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-  },
-  input: {
-    borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-});

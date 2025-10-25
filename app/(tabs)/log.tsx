@@ -1,15 +1,13 @@
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Screen, Heading, VStack, HStack, Chip, TextField, NumberField, Button, Body, Toast } from '../../components';
-import { useTheme } from '../../theme';
 import { useUser } from '../../hooks/useUser';
 import { useReadings } from '../../hooks/useReadings';
 import { lbToKg } from '../../lib/metrics';
 
-const unitOptions: Array<'imperial' | 'metric'> = ['imperial', 'metric'];
+const unitOptions: ('imperial' | 'metric')[] = ['imperial', 'metric'];
 
 export default function LogScreen() {
-  const { tokens } = useTheme();
   const { user } = useUser();
   const { add } = useReadings(user?.id);
   const [unit, setUnit] = useState<'imperial' | 'metric'>(user?.unitSystem ?? 'imperial');
@@ -77,7 +75,7 @@ export default function LogScreen() {
         metabolicAge: '',
         notes: '',
       });
-    } catch (error) {
+    } catch {
       Alert.alert('Save failed', 'Please try again.');
     } finally {
       setSaving(false);
@@ -87,35 +85,72 @@ export default function LogScreen() {
   return (
     <Screen scrollable={false}>
       <KeyboardAvoidingView behavior={Platform.select({ ios: 'padding', android: undefined })} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={{ paddingHorizontal: tokens.spacing.xl, paddingBottom: tokens.spacing['2xl'] }} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
+        >
           <VStack spacing="xl">
             <Heading>Add reading</Heading>
-            <Body>Capture the details from today’s body composition scan.</Body>
+            <Body className="text-graphite">Capture the details from today’s body composition scan.</Body>
 
             <TextField label="Taken at" value={takenAt} onChangeText={setTakenAt} autoCapitalize="none" />
 
             <VStack spacing="md">
-              <Body weight="semibold" color={tokens.colors.textSecondary}>
-                Units
-              </Body>
+              <Body className="font-[Poppins_600SemiBold] text-muted">Units</Body>
               <HStack spacing="sm">
                 {unitOptions.map((option) => (
-                  <Chip key={option} label={option === 'imperial' ? 'lb' : 'kg'} selected={unit === option} onPress={() => setUnit(option)} />
+                  <Chip
+                    key={option}
+                    label={option === 'imperial' ? 'lb' : 'kg'}
+                    selected={unit === option}
+                    onPress={() => setUnit(option)}
+                  />
                 ))}
               </HStack>
             </VStack>
 
-            <NumberField label={`Weight (${unit === 'imperial' ? 'lb' : 'kg'})`} value={form.weight} onChangeText={(value) => updateField('weight', value)} error={errors.weight} />
+            <NumberField
+              label={`Weight (${unit === 'imperial' ? 'lb' : 'kg'})`}
+              value={form.weight}
+              onChangeText={(value) => updateField('weight', value)}
+              error={errors.weight}
+            />
             <NumberField label="Body fat %" value={form.bodyFat} onChangeText={(value) => updateField('bodyFat', value)} />
             <NumberField label="Skeletal muscle %" value={form.muscle} onChangeText={(value) => updateField('muscle', value)} />
             <NumberField label="Body water %" value={form.water} onChangeText={(value) => updateField('water', value)} />
-            <NumberField label="Visceral fat index" value={form.visceral} onChangeText={(value) => updateField('visceral', value)} />
-            <NumberField label="Subcutaneous fat %" value={form.subcut} onChangeText={(value) => updateField('subcut', value)} />
-            <NumberField label={`Muscle mass (${unit === 'imperial' ? 'lb' : 'kg'})`} value={form.muscleMass} onChangeText={(value) => updateField('muscleMass', value)} />
-            <NumberField label={`Bone mass (${unit === 'imperial' ? 'lb' : 'kg'})`} value={form.boneMass} onChangeText={(value) => updateField('boneMass', value)} />
+            <NumberField
+              label="Visceral fat index"
+              value={form.visceral}
+              onChangeText={(value) => updateField('visceral', value)}
+            />
+            <NumberField
+              label="Subcutaneous fat %"
+              value={form.subcut}
+              onChangeText={(value) => updateField('subcut', value)}
+            />
+            <NumberField
+              label={`Muscle mass (${unit === 'imperial' ? 'lb' : 'kg'})`}
+              value={form.muscleMass}
+              onChangeText={(value) => updateField('muscleMass', value)}
+            />
+            <NumberField
+              label={`Bone mass (${unit === 'imperial' ? 'lb' : 'kg'})`}
+              value={form.boneMass}
+              onChangeText={(value) => updateField('boneMass', value)}
+            />
             <NumberField label="Protein %" value={form.protein} onChangeText={(value) => updateField('protein', value)} />
-            <NumberField label="BMR (kcal)" value={form.bmr} onChangeText={(value) => updateField('bmr', value)} keyboardType="number-pad" />
-            <NumberField label="Metabolic age" value={form.metabolicAge} onChangeText={(value) => updateField('metabolicAge', value)} keyboardType="number-pad" />
+            <NumberField
+              label="BMR (kcal)"
+              value={form.bmr}
+              onChangeText={(value) => updateField('bmr', value)}
+              keyboardType="number-pad"
+            />
+            <NumberField
+              label="Metabolic age"
+              value={form.metabolicAge}
+              onChangeText={(value) => updateField('metabolicAge', value)}
+              keyboardType="number-pad"
+            />
             <TextField label="Notes" value={form.notes} onChangeText={(value) => updateField('notes', value)} multiline numberOfLines={3} />
 
             <Button label={saving ? 'Saving...' : 'Save reading'} onPress={handleSubmit} loading={saving} />

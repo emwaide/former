@@ -1,6 +1,5 @@
 import { ActivityIndicator, View } from 'react-native';
 import { Screen, Heading, Card, VStack, HStack, Body, Icon, Chip, EmptyState } from '../../components';
-import { useTheme } from '../../theme';
 import { useUser } from '../../hooks/useUser';
 import { useReadings } from '../../hooks/useReadings';
 import { useAnalytics } from '../../hooks/useAnalytics';
@@ -9,7 +8,6 @@ import { formatWeeklyChange } from '../../utils/format';
 const dosePhases = ['2.5mg', '5mg', '7.5mg', '10mg+'];
 
 export default function InsightsScreen() {
-  const { tokens } = useTheme();
   const { user, loading: loadingUser } = useUser();
   const { readings, loading: loadingReadings } = useReadings(user?.id);
   const analytics = useAnalytics(user, readings);
@@ -17,8 +15,8 @@ export default function InsightsScreen() {
   if (loadingUser || loadingReadings) {
     return (
       <Screen>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color={tokens.colors.accentSecondary} />
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#37D0B4" />
         </View>
       </Screen>
     );
@@ -60,11 +58,9 @@ export default function InsightsScreen() {
     <Screen>
       <VStack spacing="xl">
         <Heading>Insights</Heading>
-        <Card>
-          <Body weight="semibold" color={tokens.colors.textSecondary}>
-            Dose phases
-          </Body>
-          <HStack spacing="sm" wrap style={{ marginTop: tokens.spacing.md }}>
+        <Card className="gap-4">
+          <Body className="font-[Poppins_600SemiBold] text-muted">Dose phases</Body>
+          <HStack spacing="sm" wrap className="mt-4">
             {dosePhases.map((dose) => (
               <Chip key={dose} label={dose} />
             ))}
@@ -73,12 +69,10 @@ export default function InsightsScreen() {
 
         <VStack spacing="md">
           {insights.map((item) => (
-            <Card key={item.title} style={{ flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.lg }}>
-              <Icon name={item.icon as any} size={28} color={tokens.colors.accentSecondary} />
-              <VStack spacing="xs" style={{ flex: 1 }}>
-                <Body weight="semibold" color={tokens.colors.text}>
-                  {item.title}
-                </Body>
+            <Card key={item.title} className="flex-row items-center gap-6">
+              <Icon name={item.icon as any} size={28} color="#42E2B8" />
+              <VStack spacing="xs" className="flex-1">
+                <Body className="font-[Poppins_600SemiBold] text-charcoal">{item.title}</Body>
                 <Body>{item.description}</Body>
               </VStack>
             </Card>
