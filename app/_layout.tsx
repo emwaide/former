@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import '../global.css';
 import { ActivityIndicator, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
