@@ -91,7 +91,12 @@ export const HeroSection = ({
   const initial = firstName?.charAt(0)?.toUpperCase() ?? '?';
 
   return (
-    <View style={{backgroundColor: "white", paddingHorizontal: 20}}>
+    <LinearGradient
+      colors={tokens.colors.heroGradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.container, { paddingTop: topInset + tokens.spacing.xl }]}
+    >
       <View style={styles.navRow}>
         <View style={styles.brandRow}>
           <View style={styles.brandBadge}>
@@ -105,17 +110,48 @@ export const HeroSection = ({
           </View>
           <Text style={styles.brandText}>former</Text>
         </View>
+
+        <View style={styles.navActions}>
+          <View style={styles.actionBadge} accessibilityElementsHidden importantForAccessibility="no">
+            <Feather name="bell" size={18} color={tokens.colors.brandLight} />
+          </View>
+          <View style={styles.avatarBadge} accessibilityRole="image">
+            <Text style={styles.avatarText}>{initial}</Text>
+          </View>
+        </View>
       </View>
 
-      {/* <View style={styles.topRow}> */}
+      <View style={styles.topRow}>
         <View style={styles.copyBlock}>
           <Text accessibilityRole="header" style={styles.heading}>
             {`Good morning, ${firstName}`}
           </Text>
-          <Text style={styles.subheading}>Let's take a look at your progress so far!</Text>
+          <Text style={styles.subheading}>
+            Let’s take a look at your progress so far!
+          </Text>
         </View>
-        <View style={styles.statsRow} accessibilityRole="text">
-        {[{ label: 'Start', value: startLabel }, { label: 'Now', value: currentLabel }, { label: 'Goal', value: goalLabel }].map((item, index) => (
+
+        <View
+          style={styles.ringWrapper}
+          accessibilityRole="image"
+          accessibilityLabel={`${percent}% to goal`}
+        >
+          <ProgressRing
+            progress={progressFraction}
+            accentGradient={tokens.colors.ringGradient}
+          >
+            <Text style={styles.percentLabel}>{`${percent}%`}</Text>
+            <Text style={styles.percentCaption}>to goal</Text>
+          </ProgressRing>
+        </View>
+      </View>
+
+      <View style={styles.statsRow} accessibilityRole="text">
+        {[
+          { label: 'Start', value: startLabel },
+          { label: 'Now', value: currentLabel },
+          { label: 'Goal', value: goalLabel },
+        ].map((item, index) => (
           <Fragment key={item.label}>
             <View style={styles.statItem}>
               <Text style={styles.statLabel}>{item.label}</Text>
@@ -126,18 +162,8 @@ export const HeroSection = ({
         ))}
       </View>
 
-        <View style={styles.ringWrapper} accessibilityRole="image" accessibilityLabel={`${percent}% to goal`}>
-          <ProgressRing progress={progressFraction} accentGradient={tokens.colors.ringGradient}>
-            <Text style={styles.percentLabel}>{`${percent}%`}</Text>
-            <Text style={styles.percentCaption}>to goal</Text>
-          </ProgressRing>
-        </View>
-      {/* </View> */}
-
-      
-
       {children ? <View style={styles.ctaContainer}>{children}</View> : null}
-    </View>
+    </LinearGradient>
   );
 };
 
@@ -159,13 +185,14 @@ const createStyles = (tokens: ThemeTokens) =>
     brandRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: tokens.spacing.xxs,
+      gap: tokens.spacing.xs,
     },
     brandBadge: {
       width: 40,
       height: 40,
       alignItems: 'center',
       justifyContent: 'center',
+      borderRadius: 20,
       backgroundColor: 'rgba(255,255,255,0.16)',
     },
     brandText: {
@@ -210,19 +237,18 @@ const createStyles = (tokens: ThemeTokens) =>
     },
     copyBlock: {
       flex: 1,
-      gap: tokens.spacing.xs,
-      paddingVertical: 20
+      gap: tokens.spacing.sm,
     },
     heading: {
-      color: tokens.colors.accent,
+      color: tokens.colors.text,
       fontSize: tokens.typography.heading,
       lineHeight: 34,
       fontFamily: tokens.typography.fontFamilyAlt,
       letterSpacing: -0.2,
-      paddingVertical: 10
+      paddingBottom: tokens.spacing.xs,
     },
     subheading: {
-      color: tokens.colors.accentSecondary,
+      color: tokens.colors.textSecondary,
       fontSize: tokens.typography.body,
       lineHeight: tokens.typography.body * 1.4,
       fontFamily: tokens.typography.fontFamily,
@@ -257,7 +283,7 @@ const createStyles = (tokens: ThemeTokens) =>
       borderRadius: 20,
       paddingVertical: tokens.spacing.sm,
       paddingHorizontal: tokens.spacing.lg,
-      backgroundColor: tokens.colors.background
+      backgroundColor: tokens.colors.background,
     },
     statItem: {
       flex: 1,
