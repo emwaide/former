@@ -1,12 +1,36 @@
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { ThemeTokens, useTheme } from '../../theme';
 
 type StreakCardProps = {
   loggedDays: boolean[];
   loggedCount: number;
   onViewHistory?: () => void;
+};
+
+const withAlpha = (color: string, alpha: number) => {
+  if (color.startsWith('rgb')) {
+    const values = color
+      .replace(/rgba?\(/, '')
+      .replace(')', '')
+      .split(',')
+      .map((value) => parseFloat(value.trim()));
+    const [r = 0, g = 0, b = 0] = values.slice(0, 3);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  const sanitized = color.replace('#', '');
+  const expanded =
+    sanitized.length === 3
+      ? sanitized
+          .split('')
+          .map((char) => char + char)
+          .join('')
+      : sanitized;
+  const bigint = parseInt(expanded, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
 export const StreakCard = ({ loggedDays, loggedCount, onViewHistory }: StreakCardProps) => {
@@ -24,72 +48,66 @@ export const StreakCard = ({ loggedDays, loggedCount, onViewHistory }: StreakCar
     return streak;
   }, [loggedDays]);
 
+  const weekLoggedLabel = `${loggedCount} of 7 days`;
+  const summaryLabel = `You’ve logged ${loggedCount} ${loggedCount === 1 ? 'day' : 'days'} this week. Small, regular actions create lasting change.`;
+
   return (
-    <View style={styles.wrapper}>
-      <LinearGradient
-        colors={tokens.colors.streakGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
+    <View style={styles.card}>
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>Consistency</Text>
+        {onViewHistory ? (
+          <Pressable accessibilityRole="button" onPress={onViewHistory} hitSlop={8}>
+            <Text style={styles.linkText}>View history →</Text>
+          </Pressable>
+        ) : null}
+      </View>
+
+      <View
+        style={styles.summaryRow}
+        accessibilityRole="text"
+        accessibilityLabel={`This week ${weekLoggedLabel}`}
       >
-        <View style={styles.headerRow}>
-          <Text style={styles.title}>Consistency</Text>
-          {onViewHistory ? (
-            <Pressable accessibilityRole="button" onPress={onViewHistory} hitSlop={8}>
-              <Text style={styles.linkText}>View history →</Text>
-            </Pressable>
-          ) : null}
-        </View>
+        <Text style={styles.summaryLabel}>This week</Text>
+        <Text style={styles.summaryValue}>{weekLoggedLabel}</Text>
+      </View>
 
-        <View
-          style={styles.summaryBlock}
-          accessibilityRole="text"
-          accessibilityLabel={`This week ${loggedCount} of 7 days logged`}
-        >
-          <Text style={styles.summaryLabel}>This week</Text>
-          <Text style={styles.summaryValue}>{`${loggedCount} of 7 days logged`}</Text>
-        </View>
+      <View
+        style={styles.segmentRow}
+        accessibilityRole="image"
+        accessibilityLabel={`${loggedCount} days logged this week`}
+      >
+        {loggedDays.map((day, index) => (
+          <View
+            key={index}
+            style={[styles.segment, day ? styles.segmentActive : styles.segmentInactive]}
+          />
+        ))}
+      </View>
 
-        <View
-          style={styles.dotsRow}
-          accessibilityRole="image"
-          accessibilityLabel={`${loggedCount} days logged this week`}
-        >
-          {loggedDays.map((day, index) => (
-            <View key={index} style={[styles.dot, day ? styles.dotFilled : styles.dotEmpty]}>
-              {day ? <View style={styles.dotInner} /> : null}
-            </View>
-          ))}
+      <View style={styles.footerRow}>
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{`${currentStreak}-day streak`}</Text>
         </View>
-
-        <View style={styles.footerRow}>
-          <View style={styles.streakBadge}>
-            <Text style={styles.streakBadgeText}>{`${currentStreak}-day streak`}</Text>
-          </View>
-          <Text style={styles.caption}>Consistency builds momentum.</Text>
-        </View>
-      </LinearGradient>
+        <Text style={styles.caption}>{summaryLabel}</Text>
+      </View>
     </View>
   );
 };
 
 const createStyles = (tokens: ThemeTokens) =>
   StyleSheet.create({
-    wrapper: {
-      borderRadius: tokens.radius.card,
-      shadowColor: tokens.colors.shadow,
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 1,
-      shadowRadius: 22,
-      elevation: 6,
-    },
     card: {
       borderRadius: tokens.radius.card,
       padding: tokens.spacing.lg,
       gap: tokens.spacing.lg,
+      backgroundColor: tokens.colors.card,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: 'rgba(255,255,255,0.28)',
-      overflow: 'hidden',
+      borderColor: withAlpha(tokens.colors.mutedBorder, 0.6),
+      shadowColor: tokens.colors.shadow,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 1,
+      shadowRadius: 18,
+      elevation: 4,
     },
     headerRow: {
       flexDirection: 'row',
@@ -97,82 +115,74 @@ const createStyles = (tokens: ThemeTokens) =>
       alignItems: 'center',
     },
     title: {
-      color: '#FFFFFF',
+      color: tokens.mode === 'dark' ? tokens.colors.text : tokens.colors.brandNavy,
       fontSize: tokens.typography.subheading,
       fontFamily: tokens.typography.fontFamilyAlt,
     },
     linkText: {
-      color: 'rgba(255,255,255,0.85)',
+      color: tokens.colors.textSubtle,
       fontSize: tokens.typography.caption,
       fontFamily: tokens.typography.fontFamilyMedium,
     },
-    summaryBlock: {
-      gap: 4,
+    summaryRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
     },
     summaryLabel: {
-      color: 'rgba(255,255,255,0.72)',
-      fontSize: tokens.typography.body,
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.typography.caption,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
       fontFamily: tokens.typography.fontFamilyMedium,
     },
     summaryValue: {
-      color: '#FFFFFF',
-      fontSize: tokens.typography.subheading,
+      color: tokens.mode === 'dark' ? tokens.colors.text : tokens.colors.brandNavy,
+      fontSize: tokens.typography.body,
       fontFamily: tokens.typography.fontFamilyAlt,
     },
-    dotsRow: {
+    segmentRow: {
       flexDirection: 'row',
       gap: tokens.spacing.sm,
-      marginTop: tokens.spacing.md,
-    },
-    dot: {
-      width: 18,
-      height: 18,
-      borderRadius: 9,
-      borderWidth: 2,
       alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'transparent',
+      marginTop: tokens.spacing.sm,
     },
-    dotEmpty: {
-      borderColor: 'rgba(255,255,255,0.38)',
+    segment: {
+      flex: 1,
+      height: 8,
+      borderRadius: 8,
     },
-    dotFilled: {
-      borderColor: 'rgba(255,255,255,0.9)',
-      backgroundColor: 'rgba(255,255,255,0.22)',
+    segmentInactive: {
+      backgroundColor: withAlpha(tokens.colors.aquaSoft, 0.35),
     },
-    dotInner: {
-      width: 6,
-      height: 6,
-      borderRadius: 3,
-      backgroundColor: '#FFFFFF',
+    segmentActive: {
+      backgroundColor: tokens.colors.accentSecondary,
     },
     footerRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginTop: tokens.spacing.lg,
       gap: tokens.spacing.md,
     },
-    streakBadge: {
+    badge: {
       paddingHorizontal: tokens.spacing.md,
       paddingVertical: 6,
       borderRadius: tokens.radius.pill,
-      backgroundColor: 'rgba(255,255,255,0.24)',
+      backgroundColor: withAlpha(tokens.colors.accentSecondary, 0.18),
     },
-    streakBadgeText: {
-      color: '#FFFFFF',
+    badgeText: {
+      color: tokens.mode === 'dark' ? tokens.colors.text : tokens.colors.accentSecondary,
       fontSize: tokens.typography.caption,
       fontFamily: tokens.typography.fontFamilyMedium,
       letterSpacing: 0.6,
       textTransform: 'uppercase',
     },
     caption: {
-      color: 'rgba(255,255,255,0.82)',
+      color: tokens.colors.textSecondary,
       fontSize: tokens.typography.body,
       lineHeight: tokens.typography.body * 1.4,
       fontFamily: tokens.typography.fontFamily,
       flex: 1,
-      textAlign: 'right',
     },
   });
 

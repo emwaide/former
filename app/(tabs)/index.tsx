@@ -1,13 +1,5 @@
-import { ReactNode, useMemo } from 'react';
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleProp,
-  StyleSheet,
-  Text,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { useMemo } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
@@ -413,41 +405,27 @@ export const DashboardContent = ({
             <View style={themed.sectionHeaderRule} />
           </View>
 
-          <CardShell
-            tokens={tokens}
-            style={{ marginTop: tokens.spacing.sm }}
-            accentCorner="topRight"
-          >
-            <WeeklyChangeCard
-              changeLabel={weeklyChangeLabel}
-              changeValue={analytics.weeklyChangeKg ?? 0}
-              subtext={weeklySubtext}
-              data={weeklySeries}
-            />
-          </CardShell>
+          <WeeklyChangeCard
+            changeLabel={weeklyChangeLabel}
+            changeValue={analytics.weeklyChangeKg ?? 0}
+            subtext={weeklySubtext}
+            data={weeklySeries}
+          />
         </View>
 
         <View style={themed.sectionSpacing}>
-          <Text style={themed.subSectionLabel}>Body composition</Text>
-          <MetricsGrid
-            metrics={metrics.slice(0, 6)}
-            showMore={metrics.length > 6}
-          />
+          <MetricsGrid metrics={metrics.slice(0, 6)} showMore={metrics.length > 6} />
         </View>
 
         {guidance ? (
           <View style={themed.sectionSpacing}>
-            <GradientInsightShell tokens={tokens}>
-              <GuidanceCard
-                message={guidance.message}
-                actionLabel={guidance.actionLabel}
-                onAction={
-                  guidance.actionLabel
-                    ? () => router.push('/(tabs)/log')
-                    : undefined
-                }
-              />
-            </GradientInsightShell>
+            <GuidanceCard
+              message={guidance.message}
+              actionLabel={guidance.actionLabel}
+              onAction={
+                guidance.actionLabel ? () => router.push('/(tabs)/log') : undefined
+              }
+            />
           </View>
         ) : null}
 
@@ -479,78 +457,6 @@ export default function DashboardRoute() {
     />
   );
 }
-
-type CardShellProps = {
-  children: ReactNode;
-  tokens: ThemeTokens;
-  style?: StyleProp<ViewStyle>;
-  accentCorner?: 'topRight' | 'bottomLeft';
-};
-
-const CardShell = ({ children, tokens, style, accentCorner }: CardShellProps) => (
-  <View style={[stylesShared.cardBase(tokens), style]}>
-    {accentCorner === 'topRight' ? (
-      <View style={stylesShared.cornerAccentTopRight(tokens)} />
-    ) : null}
-    {accentCorner === 'bottomLeft' ? (
-      <View style={stylesShared.cornerAccentBottomLeft(tokens)} />
-    ) : null}
-    {children}
-  </View>
-);
-
-type GradientInsightShellProps = {
-  children: ReactNode;
-  tokens: ThemeTokens;
-};
-
-const GradientInsightShell = ({ children, tokens }: GradientInsightShellProps) => (
-  <View style={stylesShared.guidanceCardOuter(tokens)}>{children}</View>
-);
-
-const stylesShared = {
-  cardBase: (tokens: ThemeTokens) => ({
-    borderRadius: 20,
-    backgroundColor: tokens.colors.card,
-    padding: tokens.spacing.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: withAlpha(tokens.colors.aquaSoft, 0.45),
-    shadowColor: tokens.colors.shadow,
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
-    position: 'relative',
-  }),
-  cornerAccentTopRight: (tokens: ThemeTokens) => ({
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 24,
-    height: 24,
-    borderBottomLeftRadius: 24,
-    backgroundColor: withAlpha(tokens.colors.brandLight, 0.12),
-  }),
-  cornerAccentBottomLeft: (tokens: ThemeTokens) => ({
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    width: 24,
-    height: 24,
-    borderTopRightRadius: 24,
-    backgroundColor: withAlpha(tokens.colors.brandLight, 0.12),
-  }),
-  guidanceCardOuter: (tokens: ThemeTokens) => ({
-    borderRadius: 20,
-    padding: tokens.spacing.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: withAlpha(tokens.colors.brandMid, 0.25),
-    backgroundColor:
-      tokens.mode === 'dark'
-        ? withAlpha(tokens.colors.brandMid, 0.2)
-        : withAlpha(tokens.colors.aquaSoft, 0.32),
-  }),
-};
 
 const createStyles = (tokens: ThemeTokens, insets: { top: number; bottom: number }) =>
   StyleSheet.create({
@@ -587,7 +493,7 @@ const createStyles = (tokens: ThemeTokens, insets: { top: number; bottom: number
       marginBottom: tokens.spacing.xl,
     },
     sectionSpacing: {
-      gap: tokens.spacing.md,
+      gap: tokens.spacing.sm,
     },
     sectionHeaderRow: {
       flexDirection: 'row',
@@ -604,13 +510,5 @@ const createStyles = (tokens: ThemeTokens, insets: { top: number; bottom: number
       flex: 1,
       height: 1,
       backgroundColor: withAlpha(tokens.colors.accentSecondary, 0.2),
-    },
-    subSectionLabel: {
-      fontSize: 11,
-      textTransform: 'uppercase',
-      color: tokens.colors.textSecondary,
-      marginBottom: tokens.spacing.sm,
-      letterSpacing: 0.5,
-      fontFamily: tokens.typography.fontFamilyMedium,
     },
   });
