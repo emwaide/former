@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { ThemeTokens, useTheme } from '../../theme';
 
@@ -10,45 +9,63 @@ type GuidanceCardProps = {
   onAction?: () => void;
 };
 
+const withAlpha = (color: string, alpha: number) => {
+  if (color.startsWith('rgb')) {
+    const values = color
+      .replace(/rgba?\(/, '')
+      .replace(')', '')
+      .split(',')
+      .map((value) => parseFloat(value.trim()));
+    const [r = 0, g = 0, b = 0] = values.slice(0, 3);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  const sanitized = color.replace('#', '');
+  const expanded =
+    sanitized.length === 3
+      ? sanitized
+          .split('')
+          .map((char) => char + char)
+          .join('')
+      : sanitized;
+  const bigint = parseInt(expanded, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 export const GuidanceCard = ({ message, actionLabel, onAction }: GuidanceCardProps) => {
   const { tokens } = useTheme();
   const styles = useMemo(() => createStyles(tokens), [tokens]);
 
   return (
-    <LinearGradient
-      colors={tokens.colors.guidanceGradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.card}
-    >
-      <View style={styles.content}>
-        <View style={styles.row}>
-          <View style={styles.iconBadge}>
-            <Feather
-              name="sun"
-              size={18}
-              color={tokens.colors.accentSecondary}
-              accessibilityElementsHidden
-              importantForAccessibility="no"
-            />
-          </View>
-          <View style={styles.copy}>
-            <Text style={styles.title}>Today’s insight</Text>
-            <Text style={styles.message}>{message}</Text>
-          </View>
+    <View style={styles.card}>
+      <View style={styles.row}>
+        <View style={styles.iconBadge}>
+          <Feather
+            name="sun"
+            size={18}
+            color={tokens.colors.accentSecondary}
+            accessibilityElementsHidden
+            importantForAccessibility="no"
+          />
         </View>
-
-        {actionLabel && onAction ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={onAction}
-            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-          >
-            <Text style={styles.buttonLabel}>{actionLabel}</Text>
-          </Pressable>
-        ) : null}
+        <View style={styles.copy}>
+          <Text style={styles.title}>Today’s insight</Text>
+          <Text style={styles.message}>{message}</Text>
+        </View>
       </View>
-    </LinearGradient>
+
+      {actionLabel && onAction ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={onAction}
+          style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+        >
+          <Text style={styles.buttonLabel}>{actionLabel}</Text>
+        </Pressable>
+      ) : null}
+    </View>
   );
 };
 
@@ -56,13 +73,17 @@ const createStyles = (tokens: ThemeTokens) =>
   StyleSheet.create({
     card: {
       borderRadius: tokens.radius.card,
+      backgroundColor:
+        tokens.mode === 'dark'
+          ? withAlpha(tokens.colors.guidanceGradient[0], 0.75)
+          : withAlpha(tokens.colors.aquaSoft, 0.55),
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: withAlpha(tokens.colors.brandMid, tokens.mode === 'dark' ? 0.4 : 0.3),
       shadowColor: tokens.colors.shadow,
-      shadowOffset: { width: 0, height: 4 },
+      shadowOffset: { width: 0, height: 6 },
       shadowOpacity: 1,
-      shadowRadius: 12,
-      elevation: 3,
-    },
-    content: {
+      shadowRadius: 16,
+      elevation: 4,
       padding: tokens.spacing.lg,
       gap: tokens.spacing.md,
     },
@@ -79,29 +100,31 @@ const createStyles = (tokens: ThemeTokens) =>
       justifyContent: 'center',
       backgroundColor:
         tokens.mode === 'dark'
-          ? 'rgba(144, 224, 239, 0.22)'
-          : 'rgba(2, 136, 209, 0.12)',
+          ? withAlpha(tokens.colors.brandMid, 0.32)
+          : withAlpha(tokens.colors.accentSecondary, 0.18),
     },
     copy: {
       flex: 1,
       gap: tokens.spacing.xs,
     },
     title: {
-      color: tokens.colors.brandNavy,
-      fontSize: tokens.typography.subheading,
-      fontFamily: tokens.typography.fontFamilyAlt,
+      color: tokens.mode === 'dark' ? tokens.colors.text : tokens.colors.brandNavy,
+      fontSize: tokens.typography.caption,
+      fontFamily: tokens.typography.fontFamilyMedium,
+      textTransform: 'uppercase',
+      letterSpacing: 0.8,
     },
     message: {
-      color: tokens.colors.brandNavy,
+      color: tokens.mode === 'dark' ? tokens.colors.text : tokens.colors.brandNavy,
       fontSize: tokens.typography.body,
       lineHeight: tokens.typography.body * 1.4,
       fontFamily: tokens.typography.fontFamily,
     },
     button: {
       alignSelf: 'flex-start',
-      backgroundColor: tokens.colors.accentSecondary,
-      paddingHorizontal: tokens.spacing.xl,
-      paddingVertical: tokens.spacing.md,
+      backgroundColor: tokens.colors.brandNavy,
+      paddingHorizontal: tokens.spacing.lg,
+      paddingVertical: tokens.spacing.sm,
       borderRadius: tokens.radius.pill,
     },
     buttonPressed: {

@@ -2,6 +2,7 @@ import { Fragment, ReactNode, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
+import { Feather } from '@expo/vector-icons';
 import { ThemeTokens, useTheme } from '../../theme';
 
 const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
@@ -86,20 +87,61 @@ export const HeroSection = ({
   const { tokens } = useTheme();
   const styles = useMemo(() => createStyles(tokens), [tokens]);
   const percent = Math.round(clamp(progressFraction) * 100);
+  const firstName = name?.split(' ')[0] ?? name;
+  const initial = firstName?.charAt(0)?.toUpperCase() ?? '?';
 
   return (
     <LinearGradient
       colors={tokens.colors.heroGradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
-      style={[styles.container, { paddingTop: topInset + 56 }]}
+      style={[styles.container, { paddingTop: topInset + tokens.spacing.lg }]}
     >
+      <View style={styles.navRow}>
+        <View style={styles.brandRow}>
+          <View style={styles.brandBadge}>
+            <Feather
+              name="wind"
+              size={18}
+              color="#FFFFFF"
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            />
+          </View>
+          <Text style={styles.brandText}>Former</Text>
+        </View>
+
+        <View style={styles.navActions}>
+          <View style={styles.actionBadge}>
+            <Feather
+              name="bell"
+              size={18}
+              color="rgba(255,255,255,0.92)"
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            />
+          </View>
+          <View style={styles.actionBadge}>
+            <Feather
+              name="pie-chart"
+              size={18}
+              color="rgba(255,255,255,0.92)"
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            />
+          </View>
+          <View style={styles.avatarBadge}>
+            <Text style={styles.avatarText}>{initial}</Text>
+          </View>
+        </View>
+      </View>
+
       <View style={styles.topRow}>
         <View style={styles.copyBlock}>
           <Text accessibilityRole="header" style={styles.heading}>
-            {`Hi ${name} — here’s your progress this week.`}
+            {`Good morning, ${firstName}`}
           </Text>
-          <Text style={styles.subheading}>{`Currently ${currentLabel} · aiming for ${goalLabel}`}</Text>
+          <Text style={styles.subheading}>{`${percent}% toward your body recomposition goal`}</Text>
         </View>
 
         <View style={styles.ringWrapper} accessibilityRole="image" accessibilityLabel={`${percent}% to goal`}>
@@ -136,6 +178,57 @@ const createStyles = (tokens: ThemeTokens) =>
       borderBottomRightRadius: 32,
       gap: tokens.spacing.lg,
       marginHorizontal: -tokens.spacing.md,
+    },
+    navRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    brandRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: tokens.spacing.sm,
+    },
+    brandBadge: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(255,255,255,0.16)',
+    },
+    brandText: {
+      color: '#FFFFFF',
+      fontSize: tokens.typography.subheading,
+      fontFamily: tokens.typography.fontFamilyAlt,
+      letterSpacing: 0.4,
+    },
+    navActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: tokens.spacing.sm,
+    },
+    actionBadge: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(255,255,255,0.14)',
+    },
+    avatarBadge: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(255,255,255,0.92)',
+    },
+    avatarText: {
+      color: tokens.colors.brandNavy,
+      fontSize: tokens.typography.subheading,
+      fontFamily: tokens.typography.fontFamilyAlt,
+      letterSpacing: 0.2,
     },
     topRow: {
       flexDirection: 'row',
@@ -188,7 +281,7 @@ const createStyles = (tokens: ThemeTokens) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      backgroundColor: 'rgba(255,255,255,0.22)',
+      backgroundColor: 'rgba(255,255,255,0.18)',
       borderRadius: 20,
       paddingVertical: tokens.spacing.sm,
       paddingHorizontal: tokens.spacing.lg,
