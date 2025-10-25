@@ -144,6 +144,19 @@ const formatPercentDeltaLabel = (
   };
 };
 
+const formatSignedBadge = (
+  value: number,
+  { suffix = '', precision = 1, threshold = 0.1 }: { suffix?: string; precision?: number; threshold?: number } = {},
+) => {
+  const absolute = Math.abs(value);
+  if (absolute < threshold) {
+    return `${(0).toFixed(precision)}${suffix}`;
+  }
+
+  const sign = value > 0 ? '+' : '-';
+  return `${sign}${absolute.toFixed(precision)}${suffix}`;
+};
+
 const buildMetrics = (
   latest: Reading,
   first: Reading,
@@ -168,24 +181,12 @@ const buildMetrics = (
   const waterDeltaResult = formatPercentDeltaLabel(waterDelta, true);
   const fatDeltaResult = formatPercentDeltaLabel(fatDelta, false);
 
-  const weightBadge = Math.abs(weightDelta) < 0.1
-    ? 'Holding steady'
-    : `${weightDelta > 0 ? '+' : ''}${Math.abs(weightDelta).toFixed(1)} ${weightUnit}`;
-  const fatBadge = Math.abs(fatDelta) < 0.1
-    ? 'Holding steady'
-    : `${fatDelta > 0 ? '+' : ''}${Math.abs(fatDelta).toFixed(1)}%`;
-  const muscleBadge = Math.abs(muscleDelta) < 0.1
-    ? 'Holding steady'
-    : `${muscleDelta > 0 ? '+' : ''}${Math.abs(muscleDelta).toFixed(1)} ${weightUnit}`;
-  const proteinBadge = Math.abs(proteinDelta) < 0.1
-    ? 'Holding steady'
-    : `${proteinDelta > 0 ? '+' : ''}${Math.abs(proteinDelta).toFixed(1)}%`;
-  const waterBadge = Math.abs(waterDelta) < 0.1
-    ? 'Holding steady'
-    : `${waterDelta > 0 ? '+' : ''}${Math.abs(waterDelta).toFixed(1)}%`;
-  const visceralBadge = Math.abs(visceralDelta) < 0.1
-    ? 'Holding steady'
-    : `${visceralDelta > 0 ? '+' : ''}${Math.abs(visceralDelta).toFixed(0)} lvl`;
+  const weightBadge = formatSignedBadge(weightDelta, { suffix: ` ${weightUnit}` });
+  const fatBadge = formatSignedBadge(fatDelta, { suffix: '%', precision: 1 });
+  const muscleBadge = formatSignedBadge(muscleDelta, { suffix: ` ${weightUnit}` });
+  const proteinBadge = formatSignedBadge(proteinDelta, { suffix: '%', precision: 1 });
+  const waterBadge = formatSignedBadge(waterDelta, { suffix: '%', precision: 1 });
+  const visceralBadge = formatSignedBadge(visceralDelta, { suffix: ' lvl', precision: 0 });
 
   const currentWeightDisplay = formatWeight(latest.weightKg, unit);
   const [weightValuePart, ...weightUnitParts] = currentWeightDisplay.split(' ');

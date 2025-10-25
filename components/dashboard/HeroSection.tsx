@@ -6,6 +6,14 @@ import { colorWithOpacity, getColor } from '../../utils/colors';
 
 const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
 
+const getGreeting = (date = new Date()) => {
+  const hour = date.getHours();
+
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+};
+
 type ProgressRingProps = {
   progress: number;
   size?: number;
@@ -81,6 +89,7 @@ export const HeroSection = ({
   const percent = Math.round(clamp(progressFraction) * 100);
   const firstName = name?.split(' ')[0] ?? name;
   const trackColor = colorWithOpacity('charcoal', 0.08);
+  const greeting = getGreeting();
 
   return (
     <View
@@ -90,7 +99,7 @@ export const HeroSection = ({
     >
       <View className="flex-col gap-4">
         <View className="flex-col gap-2">
-          <Text className="text-[20px] font-[Poppins_600SemiBold] text-charcoal">{`Good morning, ${firstName}`}</Text>
+          <Text className="text-[20px] font-[Poppins_600SemiBold] text-charcoal">{`${greeting}, ${firstName}`}</Text>
           <Text className="text-[16px] font-[Poppins_400Regular] leading-[24px] text-graphite">
             {`${percent}% toward your body recomposition goal`}
           </Text>
@@ -109,7 +118,13 @@ export const HeroSection = ({
           </ProgressRing>
         </View>
 
-        <View className="flex-row items-center justify-between rounded-[20px] border border-border bg-background px-4 py-3">
+        <View
+          className="flex-row items-center justify-between rounded-[20px] border px-4 py-3"
+          style={{
+            backgroundColor: colorWithOpacity('surface', 0.6),
+            borderColor: colorWithOpacity('surface', 0.8),
+          }}
+        >
           {[{ label: 'Start', value: startLabel }, { label: 'Now', value: currentLabel }, { label: 'Goal', value: goalLabel }].map(
             (item, index) => (
               <Fragment key={item.label}>
