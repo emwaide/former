@@ -426,12 +426,12 @@ export const DashboardContent = ({
 
 export default function DashboardScreen() {
   const { user, loading: userLoading } = useUser();
-  const { readings, loading: readingsLoading } = useReadings();
-  const { analytics, loading: analyticsLoading } = useAnalytics();
+  const { readings, loading: readingsLoading } = useReadings(user?.id);
+  const analytics = useAnalytics(user, readings);
 
   return (
     <DashboardContent
-      loading={userLoading || readingsLoading || analyticsLoading}
+      loading={userLoading || readingsLoading}
       user={user}
       readings={readings}
       analytics={analytics}
