@@ -381,7 +381,6 @@ export const DashboardContent = ({
     <View style={themed.gradientBackground}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={themed.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
         <View style={themed.heroSpacing}>
@@ -465,9 +464,9 @@ const createStyles = (tokens: ThemeTokens, insets: { top: number; bottom: number
       backgroundColor: tokens.colors.background,
     },
     scrollContainer: {
-      paddingHorizontal: tokens.spacing.md,
-      paddingTop: tokens.spacing.sm,
-      paddingBottom: tokens.spacing.lg + Math.max(insets.bottom, tokens.spacing.sm),
+      marginHorizontal: tokens.spacing.md,
+      marginTop: tokens.spacing.sm,
+      marginBottom: tokens.spacing.lg + Math.max(insets.bottom, tokens.spacing.sm),
       gap: tokens.spacing.xl,
     },
     loadingScreen: {

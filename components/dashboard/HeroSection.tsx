@@ -91,68 +91,30 @@ export const HeroSection = ({
   const initial = firstName?.charAt(0)?.toUpperCase() ?? '?';
 
   return (
-    <LinearGradient
-      colors={tokens.colors.heroGradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
-      style={[styles.container, { paddingTop: topInset + tokens.spacing.lg }]}
-    >
+    <View style={{backgroundColor: "white", paddingHorizontal: 20}}>
       <View style={styles.navRow}>
         <View style={styles.brandRow}>
           <View style={styles.brandBadge}>
             <Feather
-              name="wind"
+              name="sunrise"
               size={18}
-              color="#FFFFFF"
+              color={tokens.colors.accent}
               accessibilityElementsHidden
               importantForAccessibility="no"
             />
           </View>
-          <Text style={styles.brandText}>Former</Text>
-        </View>
-
-        <View style={styles.navActions}>
-          <View style={styles.actionBadge}>
-            <Feather
-              name="bell"
-              size={18}
-              color="rgba(255,255,255,0.92)"
-              accessibilityElementsHidden
-              importantForAccessibility="no"
-            />
-          </View>
-          <View style={styles.actionBadge}>
-            <Feather
-              name="pie-chart"
-              size={18}
-              color="rgba(255,255,255,0.92)"
-              accessibilityElementsHidden
-              importantForAccessibility="no"
-            />
-          </View>
-          <View style={styles.avatarBadge}>
-            <Text style={styles.avatarText}>{initial}</Text>
-          </View>
+          <Text style={styles.brandText}>former</Text>
         </View>
       </View>
 
-      <View style={styles.topRow}>
+      {/* <View style={styles.topRow}> */}
         <View style={styles.copyBlock}>
           <Text accessibilityRole="header" style={styles.heading}>
             {`Good morning, ${firstName}`}
           </Text>
-          <Text style={styles.subheading}>{`${percent}% toward your body recomposition goal`}</Text>
+          <Text style={styles.subheading}>Let's take a look at your progress so far!</Text>
         </View>
-
-        <View style={styles.ringWrapper} accessibilityRole="image" accessibilityLabel={`${percent}% to goal`}>
-          <ProgressRing progress={progressFraction} accentGradient={tokens.colors.ringGradient}>
-            <Text style={styles.percentLabel}>{`${percent}%`}</Text>
-            <Text style={styles.percentCaption}>to goal</Text>
-          </ProgressRing>
-        </View>
-      </View>
-
-      <View style={styles.statsRow} accessibilityRole="text">
+        <View style={styles.statsRow} accessibilityRole="text">
         {[{ label: 'Start', value: startLabel }, { label: 'Now', value: currentLabel }, { label: 'Goal', value: goalLabel }].map((item, index) => (
           <Fragment key={item.label}>
             <View style={styles.statItem}>
@@ -164,8 +126,18 @@ export const HeroSection = ({
         ))}
       </View>
 
+        <View style={styles.ringWrapper} accessibilityRole="image" accessibilityLabel={`${percent}% to goal`}>
+          <ProgressRing progress={progressFraction} accentGradient={tokens.colors.ringGradient}>
+            <Text style={styles.percentLabel}>{`${percent}%`}</Text>
+            <Text style={styles.percentCaption}>to goal</Text>
+          </ProgressRing>
+        </View>
+      {/* </View> */}
+
+      
+
       {children ? <View style={styles.ctaContainer}>{children}</View> : null}
-    </LinearGradient>
+    </View>
   );
 };
 
@@ -187,18 +159,17 @@ const createStyles = (tokens: ThemeTokens) =>
     brandRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: tokens.spacing.sm,
+      gap: tokens.spacing.xxs,
     },
     brandBadge: {
       width: 40,
       height: 40,
-      borderRadius: 20,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: 'rgba(255,255,255,0.16)',
     },
     brandText: {
-      color: '#FFFFFF',
+      color: tokens.colors.accent,
       fontSize: tokens.typography.subheading,
       fontFamily: tokens.typography.fontFamilyAlt,
       letterSpacing: 0.4,
@@ -240,16 +211,18 @@ const createStyles = (tokens: ThemeTokens) =>
     copyBlock: {
       flex: 1,
       gap: tokens.spacing.xs,
+      paddingVertical: 20
     },
     heading: {
-      color: '#FFFFFF',
+      color: tokens.colors.accent,
       fontSize: tokens.typography.heading,
       lineHeight: 34,
       fontFamily: tokens.typography.fontFamilyAlt,
       letterSpacing: -0.2,
+      paddingVertical: 10
     },
     subheading: {
-      color: 'rgba(255,255,255,0.88)',
+      color: tokens.colors.accentSecondary,
       fontSize: tokens.typography.body,
       lineHeight: tokens.typography.body * 1.4,
       fontFamily: tokens.typography.fontFamily,
@@ -264,14 +237,14 @@ const createStyles = (tokens: ThemeTokens) =>
       justifyContent: 'center',
     },
     percentLabel: {
-      color: '#FFFFFF',
+      color: tokens.colors.accent,
       fontSize: 52,
       lineHeight: 58,
       fontFamily: tokens.typography.fontFamilyAlt,
       letterSpacing: -0.6,
     },
     percentCaption: {
-      color: 'rgba(255,255,255,0.9)',
+      color: tokens.colors.accent,
       fontSize: tokens.typography.body,
       fontFamily: tokens.typography.fontFamilyMedium,
       letterSpacing: 1,
@@ -281,10 +254,10 @@ const createStyles = (tokens: ThemeTokens) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      backgroundColor: 'rgba(255,255,255,0.18)',
       borderRadius: 20,
       paddingVertical: tokens.spacing.sm,
       paddingHorizontal: tokens.spacing.lg,
+      backgroundColor: tokens.colors.background
     },
     statItem: {
       flex: 1,
@@ -294,17 +267,17 @@ const createStyles = (tokens: ThemeTokens) =>
     statDivider: {
       width: StyleSheet.hairlineWidth,
       height: '70%',
-      backgroundColor: 'rgba(255,255,255,0.35)',
+      backgroundColor: tokens.colors.accent,
     },
     statLabel: {
-      color: 'rgba(255,255,255,0.8)',
+      color: tokens.colors.accentSecondary,
       fontSize: tokens.typography.caption,
       textTransform: 'uppercase',
       letterSpacing: 1,
       fontFamily: tokens.typography.fontFamilyMedium,
     },
     statValue: {
-      color: '#FFFFFF',
+      color: tokens.colors.accent,
       fontSize: tokens.typography.body,
       fontFamily: tokens.typography.fontFamilyAlt,
     },
