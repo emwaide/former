@@ -58,8 +58,6 @@ export const WeeklyChangeCard = ({ changeLabel, changeValue, subtext, data }: We
 
   return (
     <View className="relative overflow-hidden rounded-[20px] border border-[rgba(17,24,39,0.08)] bg-surface p-6 shadow-soft">
-      <View className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[rgba(105,224,218,0.12)]" />
-
       <View className="mb-4 flex-row items-center justify-between">
         <View className="flex-row items-center gap-3">
           <View className="h-8 w-8 items-center justify-center rounded-[12px] bg-[rgba(55,208,180,0.12)]">

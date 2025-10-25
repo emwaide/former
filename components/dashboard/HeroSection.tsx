@@ -107,7 +107,7 @@ export const HeroSection = ({
 
   return (
     <View
-      className="relative w-full rounded-b-[44px] bg-surface px-8 pb-6 shadow-card"
+      className="relative w-full rounded-b-[44px] bg-highlight px-8 pb-6 shadow-card"
       style={{ paddingTop: topInset + 32 }}
       accessibilityRole="header"
     >
