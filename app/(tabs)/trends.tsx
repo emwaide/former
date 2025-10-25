@@ -4,6 +4,7 @@ import { Screen, Card, Chip, HStack, VStack, Heading, Body, MiniLineChart, Stack
 import { useUser } from '../../hooks/useUser';
 import { useReadings } from '../../hooks/useReadings';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { getColor } from '../../utils/colors';
 
 const ranges: Record<string, number> = {
   '7d': 7,
@@ -30,7 +31,7 @@ export default function TrendsScreen() {
     return (
       <Screen>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#37D0B4" />
+          <ActivityIndicator size="large" color={getColor('teal')} />
         </View>
       </Screen>
     );
@@ -68,8 +69,8 @@ export default function TrendsScreen() {
           <Body className="font-[Poppins_600SemiBold] text-muted">Weight vs Predicted</Body>
           <MiniLineChart
             series={[
-              { points: weightSeries, color: '#42E2B8' },
-              { points: predictedSeries, color: '#69E0DA', dashed: true },
+              { points: weightSeries, color: 'tealBright' },
+              { points: predictedSeries, color: 'cyan', dashed: true },
             ]}
           />
         </Card>
@@ -78,9 +79,9 @@ export default function TrendsScreen() {
           <Body className="font-[Poppins_600SemiBold] text-muted">Body Composition</Body>
           <MiniLineChart
             series={[
-              { points: bodyFatSeries, color: '#69E0DA' },
-              { points: muscleSeries, color: '#37D0B4' },
-              { points: waterSeries, color: '#0EC4A6' },
+              { points: bodyFatSeries, color: 'cyan' },
+              { points: muscleSeries, color: 'teal' },
+              { points: waterSeries, color: 'positive' },
             ]}
             height={140}
           />

@@ -1,25 +1,11 @@
 import { Pressable, Text, View } from 'react-native';
 
+import { colorWithOpacity, getColor } from '../../utils/colors';
+
 type StreakCardProps = {
   loggedDays: boolean[];
   loggedCount: number;
   onViewHistory?: () => void;
-};
-
-const withAlpha = (color: string, alpha: number) => {
-  const sanitized = color.replace('#', '');
-  const expanded =
-    sanitized.length === 3
-      ? sanitized
-          .split('')
-          .map((char) => char + char)
-          .join('')
-      : sanitized;
-  const bigint = parseInt(expanded, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
 export const StreakCard = ({ loggedDays, loggedCount, onViewHistory }: StreakCardProps) => {
@@ -36,7 +22,10 @@ export const StreakCard = ({ loggedDays, loggedCount, onViewHistory }: StreakCar
   const summaryLabel = `You’ve logged ${loggedCount} ${loggedCount === 1 ? 'day' : 'days'} this week. Small, regular actions create lasting change.`;
 
   return (
-    <View className="flex-col gap-6 rounded-[20px] border border-[rgba(17,24,39,0.08)] bg-surface p-6 shadow-soft">
+    <View
+      className="flex-col gap-6 rounded-[20px] border bg-surface p-6 shadow-soft"
+      style={{ borderColor: colorWithOpacity('charcoal', 0.08) }}
+    >
       <View className="flex-row items-center justify-between">
         <Text className="text-[16px] font-[Poppins_600SemiBold] uppercase tracking-[1px] text-charcoal">Consistency</Text>
         {onViewHistory ? (
@@ -57,7 +46,7 @@ export const StreakCard = ({ loggedDays, loggedCount, onViewHistory }: StreakCar
             key={index}
             className="flex-1 rounded-full"
             style={{
-              backgroundColor: day ? '#37D0B4' : withAlpha('#111827', 0.08),
+              backgroundColor: day ? getColor('teal') : colorWithOpacity('charcoal', 0.08),
               height: 8,
             }}
           />
@@ -65,7 +54,10 @@ export const StreakCard = ({ loggedDays, loggedCount, onViewHistory }: StreakCar
       </View>
 
       <View className="flex-row items-start gap-4">
-        <View className="rounded-pill bg-[rgba(55,208,180,0.14)] px-4 py-2">
+        <View
+          className="rounded-pill px-4 py-2"
+          style={{ backgroundColor: colorWithOpacity('teal', 0.14) }}
+        >
           <Text className="text-[12px] font-[Poppins_600SemiBold] uppercase tracking-[0.8px] text-teal">
             {`${currentStreak}-day streak`}
           </Text>

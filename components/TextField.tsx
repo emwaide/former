@@ -1,6 +1,8 @@
 import { forwardRef, useState } from 'react';
 import { Text, TextInput, TextInputProps, View } from 'react-native';
 
+import { getColor } from '../utils/colors';
+
 export type TextFieldProps = TextInputProps & {
   label?: string;
   error?: string;
@@ -19,9 +21,9 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(({ label, error, 
 
       <TextInput
         ref={ref}
-        placeholderTextColor="#9CA3AF"
+        placeholderTextColor={getColor('placeholder')}
         className={`w-full rounded-[12px] border bg-surface px-4 py-3 text-[16px] font-[Poppins_400Regular] text-charcoal ${
-          focused ? 'border-teal' : 'border-[#E5EDF2]'
+          focused ? 'border-teal' : 'border-border'
         } ${className}`}
         onFocus={(event) => {
           setFocused(true);

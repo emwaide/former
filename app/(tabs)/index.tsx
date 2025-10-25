@@ -22,6 +22,7 @@ import {
 } from '../../utils/format';
 import { kgToLb } from '../../lib/metrics';
 import { Reading, UserProfile, UnitSystem } from '../../types/db';
+import { getColor, type ColorToken } from '../../utils/colors';
 
 const toDateKey = (iso: string) => iso.split('T')[0];
 
@@ -95,7 +96,7 @@ type DashboardMetric = {
   unit: string;
   deltaLabel: string;
   metaLabel: string;
-  accentColor: string;
+  accentColor: ColorToken;
   icon: MetricTileProps['icon'];
   tone?: 'positive' | 'negative' | 'neutral';
 };
@@ -148,7 +149,7 @@ const buildMetrics = (
   first: Reading,
   unit: UnitSystem,
 ): DashboardMetric[] => {
-  const accentColor = '#37D0B4';
+  const accentColor: ColorToken = 'teal';
   const weightDelta = kgToPreferred(latest.weightKg - first.weightKg, unit);
   const weightUnit = unit === 'imperial' ? 'lb' : 'kg';
   const fatDelta = latest.bodyFatPct - first.bodyFatPct;
@@ -316,7 +317,7 @@ export const DashboardContent = ({
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator size="large" color="#37D0B4" />
+        <ActivityIndicator size="large" color={getColor('teal')} />
       </View>
     );
   }

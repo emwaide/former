@@ -3,6 +3,8 @@ import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './Icon';
 
+import { getColor } from '../utils/colors';
+
 type TabKey = 'index' | 'trends' | 'log' | 'insights' | 'settings';
 
 const iconMap: Record<TabKey, string> = {
@@ -17,10 +19,7 @@ export const BottomNav = ({ state, descriptors, navigation }: BottomTabBarProps)
   const insets = useSafeAreaInsets();
 
   return (
-    <View
-      className="border-t border-[#E5EDF2] bg-surface shadow-soft"
-      style={{ paddingBottom: Math.max(insets.bottom, 0) }}
-    >
+    <View className="border-t border-border bg-surface shadow-soft" style={{ paddingBottom: Math.max(insets.bottom, 0) }}>
       <View className="flex-row items-center justify-between px-[10px]">
         {state.routes.map((route, index) => {
           const isFocused = state.index === index;
@@ -65,12 +64,12 @@ export const BottomNav = ({ state, descriptors, navigation }: BottomTabBarProps)
                   <Icon
                     name={iconName}
                     size={22}
-                    color={isFocused ? '#42E2B8' : '#6B728099'}
+                    color={isFocused ? getColor('tealBright') : getColor('mutedOverlay')}
                     accessibilityLabel={label}
                   />
                   <Text
                     className={`mt-0.5 text-[12px] font-[Poppins_500Medium] ${
-                      isFocused ? 'text-tealBright' : 'text-[#6B728099]'
+                      isFocused ? 'text-tealBright' : 'text-mutedOverlay'
                     } ${pressed ? 'opacity-80' : 'opacity-100'}`}
                   >
                     {label}

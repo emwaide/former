@@ -1,5 +1,7 @@
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
+import { getColor } from '../utils/colors';
+
 type ButtonVariant = 'primary' | 'secondary';
 
 type ButtonProps = {
@@ -28,7 +30,7 @@ export const Button = ({
         accessibilityLabel={accessibilityLabel ?? label}
         onPress={onPress}
         disabled={disabled || loading}
-        android_ripple={{ color: '#E5EDF2', borderless: false }}
+        android_ripple={{ color: getColor('border'), borderless: false }}
         className="w-full overflow-hidden rounded-[12px]"
       >
         {({ pressed }) => (
@@ -39,7 +41,7 @@ export const Button = ({
             style={{ transform: [{ scale: pressed ? 0.98 : 1 }] }}
           >
             {loading ? (
-              <ActivityIndicator color="#4B5563" />
+              <ActivityIndicator color={getColor('graphite')} />
             ) : (
               <Text className="text-[16px] font-[Poppins_500Medium] leading-[22px] text-charcoal">
                 {label}
@@ -67,9 +69,9 @@ export const Button = ({
           style={{ transform: [{ scale: pressed ? 0.98 : 1 }] }}
         >
           {loading ? (
-            <ActivityIndicator color="#FFFFFF" />
+            <ActivityIndicator color={getColor('surface')} />
           ) : (
-            <Text className="text-[16px] font-[Poppins_600SemiBold] leading-[24px] text-white">
+            <Text className="text-[16px] font-[Poppins_600SemiBold] leading-[24px] text-surface">
               {label}
             </Text>
           )}

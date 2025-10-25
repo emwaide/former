@@ -1,5 +1,6 @@
 import { ActivityIndicator, View } from 'react-native';
 import { Screen, Heading, Card, VStack, HStack, Body, Icon, Chip, EmptyState } from '../../components';
+import { getColor } from '../../utils/colors';
 import { useUser } from '../../hooks/useUser';
 import { useReadings } from '../../hooks/useReadings';
 import { useAnalytics } from '../../hooks/useAnalytics';
@@ -16,7 +17,7 @@ export default function InsightsScreen() {
     return (
       <Screen>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#37D0B4" />
+          <ActivityIndicator size="large" color={getColor('teal')} />
         </View>
       </Screen>
     );
@@ -70,7 +71,7 @@ export default function InsightsScreen() {
         <VStack spacing="md">
           {insights.map((item) => (
             <Card key={item.title} className="flex-row items-center gap-6">
-              <Icon name={item.icon as any} size={28} color="#42E2B8" />
+              <Icon name={item.icon as any} size={28} color={getColor('tealBright')} />
               <VStack spacing="xs" className="flex-1">
                 <Body className="font-[Poppins_600SemiBold] text-charcoal">{item.title}</Body>
                 <Body>{item.description}</Body>

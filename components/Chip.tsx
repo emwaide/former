@@ -1,5 +1,7 @@
 import { Pressable, Text } from 'react-native';
 
+import { colorWithOpacity, getColor } from '../utils/colors';
+
 type ChipProps = {
   label: string;
   selected?: boolean;
@@ -11,9 +13,11 @@ export const Chip = ({ label, selected = false, onPress }: ChipProps) => (
     accessibilityRole="button"
     accessibilityState={{ selected }}
     onPress={onPress}
-    className={`flex-row items-center rounded-pill border px-4 py-2 ${
-      selected ? 'border-teal bg-[rgba(55,208,180,0.12)]' : 'border-[#E5EDF2]'
-    }`}
+    className="flex-row items-center rounded-pill border px-4 py-2"
+    style={{
+      borderColor: selected ? getColor('teal') : getColor('border'),
+      backgroundColor: selected ? colorWithOpacity('teal', 0.12) : undefined,
+    }}
   >
     <Text
       className={`text-[14px] ${
