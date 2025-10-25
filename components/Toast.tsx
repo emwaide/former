@@ -1,59 +1,57 @@
-import { Animated, StyleSheet, Text } from 'react-native';
+import { Animated, Text } from 'react-native';
 import { useEffect, useMemo, useRef } from 'react';
-import { useTheme } from '../theme';
 
 type ToastProps = {
   message: string;
   visible: boolean;
 };
 
+const SPRING_CONFIG = {
+  damping: 20,
+  stiffness: 180,
+  mass: 1,
+};
+
 export const Toast = ({ message, visible }: ToastProps) => {
-  const { tokens } = useTheme();
   const translateY = useRef(new Animated.Value(100)).current;
 
   useEffect(() => {
     Animated.spring(translateY, {
       toValue: visible ? 0 : 100,
       useNativeDriver: true,
-      ...tokens.motion.springConfig,
+      ...SPRING_CONFIG,
     }).start();
-  }, [translateY, tokens.motion.springConfig, visible]);
+  }, [translateY, visible]);
 
   const shadowStyle = useMemo(
     () => ({
-      shadowColor: tokens.colors.shadow,
+      shadowColor: 'rgba(15, 23, 42, 0.25)',
       shadowOffset: { width: 0, height: 6 },
       shadowOpacity: 0.25,
       shadowRadius: 16,
       elevation: 6,
     }),
-    [tokens.colors.shadow],
+    [],
   );
 
   return (
     <Animated.View
       pointerEvents={visible ? 'auto' : 'none'}
       style={[
-        styles.toast,
-        shadowStyle,
         {
-          backgroundColor: tokens.colors.contrastCard,
-          borderRadius: tokens.radius.card,
+          position: 'absolute',
+          left: 24,
+          right: 24,
+          bottom: 32,
+          padding: 20,
+          borderRadius: 16,
+          backgroundColor: '#0B2545',
           transform: [{ translateY }],
         },
+        shadowStyle,
       ]}
     >
-      <Text style={{ color: tokens.colors.card, fontFamily: tokens.typography.fontFamilyAlt }}>{message}</Text>
+      <Text style={{ color: '#FFFFFF', fontFamily: 'Poppins_600SemiBold' }}>{message}</Text>
     </Animated.View>
   );
 };
-
-const styles = StyleSheet.create({
-  toast: {
-    position: 'absolute',
-    left: 24,
-    right: 24,
-    bottom: 32,
-    padding: 20,
-  },
-});

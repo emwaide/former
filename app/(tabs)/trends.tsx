@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { Screen, Card, Chip, HStack, VStack, Heading, Body, MiniLineChart, StackedBar, EmptyState } from '../../components';
-import { useTheme } from '../../theme';
 import { useUser } from '../../hooks/useUser';
 import { useReadings } from '../../hooks/useReadings';
 import { useAnalytics } from '../../hooks/useAnalytics';
@@ -13,7 +12,6 @@ const ranges: Record<string, number> = {
 };
 
 export default function TrendsScreen() {
-  const { tokens } = useTheme();
   const [range, setRange] = useState<'7d' | '30d' | '12w'>('30d');
   const { user, loading: loadingUser } = useUser();
   const { readings, loading: loadingReadings } = useReadings(user?.id);
@@ -31,8 +29,8 @@ export default function TrendsScreen() {
   if (loadingUser || loadingReadings) {
     return (
       <Screen>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color={tokens.colors.accentSecondary} />
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#37D0B4" />
         </View>
       </Screen>
     );
@@ -61,41 +59,35 @@ export default function TrendsScreen() {
       <VStack spacing="xl">
         <Heading>Trends</Heading>
         <HStack spacing="sm" wrap>
-          {(Object.keys(ranges) as Array<'7d' | '30d' | '12w'>).map((key) => (
+          {(Object.keys(ranges) as ('7d' | '30d' | '12w')[]).map((key) => (
             <Chip key={key} label={key.toUpperCase()} selected={range === key} onPress={() => setRange(key)} />
           ))}
         </HStack>
 
-        <Card>
-          <Body weight="semibold" color={tokens.colors.textSecondary}>
-            Weight vs Predicted
-          </Body>
+        <Card className="gap-4">
+          <Body className="font-[Poppins_600SemiBold] text-muted">Weight vs Predicted</Body>
           <MiniLineChart
             series={[
-              { points: weightSeries, color: tokens.colors.accentSecondary },
-              { points: predictedSeries, color: tokens.colors.accentTertiary, dashed: true },
+              { points: weightSeries, color: '#42E2B8' },
+              { points: predictedSeries, color: '#69E0DA', dashed: true },
             ]}
           />
         </Card>
 
-        <Card>
-          <Body weight="semibold" color={tokens.colors.textSecondary}>
-            Body Composition
-          </Body>
+        <Card className="gap-4">
+          <Body className="font-[Poppins_600SemiBold] text-muted">Body Composition</Body>
           <MiniLineChart
             series={[
-              { points: bodyFatSeries, color: tokens.colors.accentTertiary },
-              { points: muscleSeries, color: tokens.colors.accentSecondary },
-              { points: waterSeries, color: tokens.colors.accent },
+              { points: bodyFatSeries, color: '#69E0DA' },
+              { points: muscleSeries, color: '#37D0B4' },
+              { points: waterSeries, color: '#0EC4A6' },
             ]}
             height={140}
           />
         </Card>
 
-        <Card>
-          <Body weight="semibold" color={tokens.colors.textSecondary}>
-            Fat vs Lean (by week)
-          </Body>
+        <Card className="gap-4">
+          <Body className="font-[Poppins_600SemiBold] text-muted">Fat vs Lean (by week)</Body>
           <StackedBar data={analytics.composition} />
         </Card>
       </VStack>

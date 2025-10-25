@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+}
+
+@layer utilities {
+  .shadow-card {
+    shadow-color: rgba(15, 23, 42, 0.12);
+    shadow-offset: 0px 10px;
+    shadow-opacity: 1;
+    shadow-radius: 12px;
+    elevation: 6;
+  }
+}

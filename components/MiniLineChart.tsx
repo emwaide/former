@@ -1,6 +1,5 @@
 import Svg, { Path, Polyline, Rect } from 'react-native-svg';
 import { useMemo } from 'react';
-import { useTheme } from '../theme';
 
 type LineSeries = {
   points: number[];
@@ -21,7 +20,6 @@ export const MiniLineChart = ({
   width = 280,
   accessibilityLabel = 'Trend chart',
 }: MiniLineChartProps) => {
-  const { tokens } = useTheme();
   const domain = useMemo(() => {
     const all = series.flatMap((s) => s.points);
     const min = Math.min(...all, 0);
@@ -44,7 +42,7 @@ export const MiniLineChart = ({
 
   return (
     <Svg width={width} height={height} accessibilityLabel={accessibilityLabel} accessibilityRole="image">
-      <Rect x={0} y={0} width={width} height={height} rx={16} fill={tokens.colors.surface} opacity={0.9} />
+      <Rect x={0} y={0} width={width} height={height} rx={16} fill="#FFFFFF" opacity={0.9} />
       {series.map((s, idx) => (
         <Path
           key={idx}
@@ -59,7 +57,7 @@ export const MiniLineChart = ({
       ))}
       <Polyline
         points={`0,${height} ${width},${height}`}
-        stroke={tokens.colors.mutedBorder}
+        stroke="#E5EDF2"
         strokeWidth={1}
         strokeDasharray="4 4"
       />

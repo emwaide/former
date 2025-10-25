@@ -1,60 +1,69 @@
 import { PropsWithChildren } from 'react';
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { useTheme } from '../theme';
+import { View } from 'react-native';
+
+type Spacing = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 
 type StackProps = PropsWithChildren<{
-  spacing?: keyof ReturnType<typeof useTheme>['tokens']['spacing'];
-  align?: ViewStyle['alignItems'];
-  justify?: ViewStyle['justifyContent'];
+  spacing?: Spacing;
+  align?: 'flex-start' | 'center' | 'flex-end' | 'stretch';
+  justify?: 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around';
   wrap?: boolean;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
 }>;
 
-export const HStack = ({ spacing = 'md', align = 'center', justify = 'flex-start', wrap = false, style, children }: StackProps) => {
-  const { tokens } = useTheme();
-  return (
-    <View
-      style={[
-        styles.stack,
-        {
-          flexDirection: 'row',
-          alignItems: align,
-          justifyContent: justify,
-          flexWrap: wrap ? 'wrap' : 'nowrap',
-          gap: tokens.spacing[spacing],
-        },
-        style,
-      ]}
-    >
-      {children}
-    </View>
-  );
+const spacingClass: Record<Spacing, string> = {
+  xs: 'gap-2',
+  sm: 'gap-3',
+  md: 'gap-4',
+  lg: 'gap-6',
+  xl: 'gap-8',
+  '2xl': 'gap-10',
 };
 
-export const VStack = ({ spacing = 'md', align = 'stretch', justify = 'flex-start', style, children }: StackProps) => {
-  const { tokens } = useTheme();
-  return (
-    <View
-      style={[
-        styles.stack,
-        {
-          flexDirection: 'column',
-          alignItems: align,
-          justifyContent: justify,
-          gap: tokens.spacing[spacing],
-        },
-        style,
-      ]}
-    >
-      {children}
-    </View>
-  );
+const alignClass: Record<NonNullable<StackProps['align']>, string> = {
+  'flex-start': 'items-start',
+  center: 'items-center',
+  'flex-end': 'items-end',
+  stretch: 'items-stretch',
 };
 
-export const Spacer = () => <View style={{ flex: 1 }} />;
+const justifyClass: Record<NonNullable<StackProps['justify']>, string> = {
+  'flex-start': 'justify-start',
+  center: 'justify-center',
+  'flex-end': 'justify-end',
+  'space-between': 'justify-between',
+  'space-around': 'justify-around',
+};
 
-const styles = StyleSheet.create({
-  stack: {
-    width: '100%',
-  },
-});
+export const HStack = ({
+  spacing = 'md',
+  align = 'center',
+  justify = 'flex-start',
+  wrap = false,
+  className = '',
+  children,
+}: StackProps) => (
+  <View
+    className={`w-full flex-row ${spacingClass[spacing]} ${alignClass[align]} ${justifyClass[justify]} ${
+      wrap ? 'flex-wrap' : 'flex-nowrap'
+    } ${className}`}
+  >
+    {children}
+  </View>
+);
+
+export const VStack = ({
+  spacing = 'md',
+  align = 'stretch',
+  justify = 'flex-start',
+  className = '',
+  children,
+}: StackProps) => (
+  <View
+    className={`w-full flex-col ${spacingClass[spacing]} ${alignClass[align]} ${justifyClass[justify]} ${className}`}
+  >
+    {children}
+  </View>
+);
+
+export const Spacer = () => <View className="flex-1" />;
