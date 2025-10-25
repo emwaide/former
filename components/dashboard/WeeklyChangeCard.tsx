@@ -41,13 +41,14 @@ export const WeeklyChangeCard = ({ changeLabel, changeValue, subtext, data }: We
   const linePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x} ${point.y}`).join(' ');
   const areaPath = linePath ? `${linePath} L ${CHART_WIDTH} ${CHART_HEIGHT} L 0 ${CHART_HEIGHT} Z` : '';
   const [valuePart, unitPart] = changeLabel.split(' ');
+  const changeDescription = unitPart ? `${unitPart} this week` : 'this week';
 
   return (
     <View
       className="relative overflow-hidden rounded-[20px] border bg-surface p-6 shadow-soft"
       style={{ borderColor: colorWithOpacity('charcoal', 0.08) }}
     >
-      <View className="mb-4 flex-row items-center justify-between">
+      <View className="mb-4">
         <View className="flex-row items-center gap-3">
           <View
             className="h-8 w-8 items-center justify-center rounded-[12px]"
@@ -63,17 +64,14 @@ export const WeeklyChangeCard = ({ changeLabel, changeValue, subtext, data }: We
           </View>
           <Text className="text-[16px] font-[Poppins_600SemiBold] text-charcoal">Weight trend</Text>
         </View>
-        <View className="items-end">
-          <View className="flex-row items-baseline gap-2">
-            <Text className="text-[32px] font-[Poppins_600SemiBold] leading-[38px]" style={{ color: strokeColor }}>
-              {valuePart}
-            </Text>
-            {unitPart ? (
-              <Text className="text-[13px] font-[Poppins_500Medium] uppercase tracking-[1px] text-muted">
-                {`${unitPart} this week`}
-              </Text>
-            ) : null}
-          </View>
+
+        <View className="mt-2 flex-row items-baseline gap-2">
+          <Text className="text-[32px] font-[Poppins_600SemiBold] leading-[38px]" style={{ color: strokeColor }}>
+            {valuePart}
+          </Text>
+          <Text className="text-[13px] font-[Poppins_500Medium] uppercase tracking-[1px] text-muted">
+            {changeDescription}
+          </Text>
         </View>
       </View>
 
