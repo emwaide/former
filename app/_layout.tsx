@@ -8,10 +8,11 @@ import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } 
 import { ThemeProvider } from '../theme';
 import { initializeDatabase } from '../db/init';
 import { seedDemoData } from '../db/seed';
+import { getColor } from '../utils/colors';
 
 const Loading = () => (
   <View className="flex-1 items-center justify-center bg-background">
-    <ActivityIndicator size="large" color="#37D0B4" />
+    <ActivityIndicator size="large" color={getColor('teal')} />
   </View>
 );
 

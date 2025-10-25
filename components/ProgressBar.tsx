@@ -13,7 +13,7 @@ export const ProgressBar = ({ value, label }: ProgressBarProps) => {
       {label ? (
         <Text className="mb-2 text-[13px] font-[Poppins_600SemiBold] uppercase tracking-[1px] text-muted">{label}</Text>
       ) : null}
-      <View className="h-3 w-full overflow-hidden rounded-pill bg-[#E5EDF2]">
+      <View className="h-3 w-full overflow-hidden rounded-pill bg-border">
         <View className="h-full rounded-pill bg-teal" style={{ width: `${clamped * 100}%` }} />
       </View>
     </View>

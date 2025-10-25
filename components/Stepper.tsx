@@ -19,12 +19,12 @@ export const Stepper = ({ value, onChange, step = 1, min = Number.NEGATIVE_INFIN
   );
 
   return (
-    <View className="h-12 flex-row items-center justify-between gap-3 rounded-pill border border-[#E5EDF2] px-3">
+    <View className="h-12 flex-row items-center justify-between gap-3 rounded-pill border border-border px-3">
       <Pressable
         accessibilityLabel="Decrease value"
         accessibilityRole="button"
         onPress={() => update(-step)}
-        className="h-9 w-9 items-center justify-center rounded-full border border-[#E5EDF2]"
+        className="h-9 w-9 items-center justify-center rounded-full border border-border"
       >
         <Text className="text-[20px] text-graphite">−</Text>
       </Pressable>
@@ -33,7 +33,7 @@ export const Stepper = ({ value, onChange, step = 1, min = Number.NEGATIVE_INFIN
         accessibilityLabel="Increase value"
         accessibilityRole="button"
         onPress={() => update(step)}
-        className="h-9 w-9 items-center justify-center rounded-full border border-[#E5EDF2]"
+        className="h-9 w-9 items-center justify-center rounded-full border border-border"
       >
         <Text className="text-[20px] text-graphite">+</Text>
       </Pressable>

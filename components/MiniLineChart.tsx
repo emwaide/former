@@ -1,9 +1,11 @@
 import Svg, { Path, Polyline, Rect } from 'react-native-svg';
 import { useMemo } from 'react';
 
+import { getColor, type ColorToken } from '../utils/colors';
+
 type LineSeries = {
   points: number[];
-  color: string;
+  color: ColorToken;
   dashed?: boolean;
 };
 
@@ -42,12 +44,12 @@ export const MiniLineChart = ({
 
   return (
     <Svg width={width} height={height} accessibilityLabel={accessibilityLabel} accessibilityRole="image">
-      <Rect x={0} y={0} width={width} height={height} rx={16} fill="#FFFFFF" opacity={0.9} />
+      <Rect x={0} y={0} width={width} height={height} rx={16} fill={getColor('surface')} opacity={0.9} />
       {series.map((s, idx) => (
         <Path
           key={idx}
           d={pathForSeries(s.points)}
-          stroke={s.color}
+          stroke={getColor(s.color)}
           strokeWidth={3}
           strokeLinejoin="round"
           strokeLinecap="round"
@@ -57,7 +59,7 @@ export const MiniLineChart = ({
       ))}
       <Polyline
         points={`0,${height} ${width},${height}`}
-        stroke="#E5EDF2"
+        stroke={getColor('border')}
         strokeWidth={1}
         strokeDasharray="4 4"
       />

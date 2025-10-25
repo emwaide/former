@@ -5,6 +5,7 @@ import { useTheme } from '../../theme';
 import { useUser } from '../../hooks/useUser';
 import { kgToLb, lbToKg } from '../../lib/metrics';
 import { UnitSystem } from '../../types/db';
+import { getColor } from '../../utils/colors';
 
 export default function SettingsScreen() {
   const { colorScheme, setColorScheme } = useTheme();
@@ -69,7 +70,7 @@ export default function SettingsScreen() {
     return (
       <Screen>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#37D0B4" />
+          <ActivityIndicator size="large" color={getColor('teal')} />
         </View>
       </Screen>
     );

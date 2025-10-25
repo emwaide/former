@@ -2,32 +2,9 @@ import { Fragment, ReactNode, useMemo } from 'react';
 import { Text, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
 
-const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
+import { colorWithOpacity, getColor } from '../../utils/colors';
 
-const withAlpha = (color: string, alpha: number) => {
-  if (color.startsWith('rgb')) {
-    const values = color
-      .replace(/rgba?\(/, '')
-      .replace(')', '')
-      .split(',')
-      .map((value) => parseFloat(value.trim()));
-    const [r = 0, g = 0, b = 0] = values.slice(0, 3);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  }
-  const sanitized = color.replace('#', '');
-  const expanded =
-    sanitized.length === 3
-      ? sanitized
-          .split('')
-          .map((char) => char + char)
-          .join('')
-      : sanitized;
-  const bigint = parseInt(expanded, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
+const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
 
 type ProgressRingProps = {
   progress: number;
@@ -90,7 +67,7 @@ type HeroSectionProps = {
   children?: ReactNode;
 };
 
-const RING_GRADIENT: [string, string] = ['#37D0B4', '#42E2B8'];
+const RING_GRADIENT: [string, string] = [getColor('teal'), getColor('tealBright')];
 
 export const HeroSection = ({
   name,
@@ -103,7 +80,7 @@ export const HeroSection = ({
 }: HeroSectionProps) => {
   const percent = Math.round(clamp(progressFraction) * 100);
   const firstName = name?.split(' ')[0] ?? name;
-  const trackColor = withAlpha('#111827', 0.08);
+  const trackColor = colorWithOpacity('charcoal', 0.08);
 
   return (
     <View
@@ -132,7 +109,7 @@ export const HeroSection = ({
           </ProgressRing>
         </View>
 
-        <View className="flex-row items-center justify-between rounded-[20px] border border-[#E5EDF2] bg-[#F8FAFC] px-4 py-3">
+        <View className="flex-row items-center justify-between rounded-[20px] border border-border bg-background px-4 py-3">
           {[{ label: 'Start', value: startLabel }, { label: 'Now', value: currentLabel }, { label: 'Goal', value: goalLabel }].map(
             (item, index) => (
               <Fragment key={item.label}>
@@ -142,7 +119,7 @@ export const HeroSection = ({
                   </Text>
                   <Text className="mt-1 text-[18px] font-[Poppins_600SemiBold] text-charcoal">{item.value}</Text>
                 </View>
-                {index < 2 ? <View className="h-8 w-px bg-[#E5EDF2]" /> : null}
+                {index < 2 ? <View className="h-8 w-px bg-border" /> : null}
               </Fragment>
             ),
           )}

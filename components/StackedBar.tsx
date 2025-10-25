@@ -1,5 +1,7 @@
 import Svg, { Rect, Text as SvgText } from 'react-native-svg';
 
+import { getColor } from '../utils/colors';
+
 type Segment = {
   label: string;
   fatPct: number;
@@ -29,7 +31,7 @@ export const StackedBar = ({ data, width = 280, height = 140 }: StackedBarProps)
               width={barWidth}
               height={fatHeight}
               rx={12}
-              fill="#69E0DA"
+              fill={getColor('cyan')}
               opacity={0.85}
             />
             <Rect
@@ -39,10 +41,17 @@ export const StackedBar = ({ data, width = 280, height = 140 }: StackedBarProps)
               width={barWidth}
               height={leanHeight}
               rx={12}
-              fill="#37D0B4"
+              fill={getColor('teal')}
               opacity={0.85}
             />
-            <SvgText key={`label-${index}`} x={x + barWidth / 2} y={height - 4} textAnchor="middle" fontSize={12} fill="#4B5563">
+            <SvgText
+              key={`label-${index}`}
+              x={x + barWidth / 2}
+              y={height - 4}
+              textAnchor="middle"
+              fontSize={12}
+              fill={getColor('graphite')}
+            >
               {segment.label}
             </SvgText>
           </>

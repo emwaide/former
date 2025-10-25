@@ -1,6 +1,8 @@
 import Svg, { Circle, Path, Text as SvgText } from 'react-native-svg';
 import { useMemo } from 'react';
 
+import { getColor } from '../utils/colors';
+
 const SIZE = 140;
 const STROKE = 16;
 
@@ -18,9 +20,9 @@ export const Gauge = ({ value, max = 100, min = 0, label }: GaugeProps) => {
   const percent = (clamped - min) / (max - min);
 
   const strokeColor = useMemo(() => {
-    if (percent >= 0.66) return '#37D0B4';
-    if (percent >= 0.4) return '#42E2B8';
-    return '#69E0DA';
+    if (percent >= 0.66) return getColor('teal');
+    if (percent >= 0.4) return getColor('tealBright');
+    return getColor('cyan');
   }, [percent]);
 
   const circumference = Math.PI * (SIZE - STROKE);
@@ -39,7 +41,7 @@ export const Gauge = ({ value, max = 100, min = 0, label }: GaugeProps) => {
 
   return (
     <Svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} accessibilityRole="image" accessibilityLabel={label}>
-      <Path d={arcPath} stroke="#E5EDF2" strokeWidth={STROKE} strokeLinecap="round" fill="transparent" />
+      <Path d={arcPath} stroke={getColor('border')} strokeWidth={STROKE} strokeLinecap="round" fill="transparent" />
       <Path
         d={arcPath}
         stroke={strokeColor}
@@ -49,12 +51,12 @@ export const Gauge = ({ value, max = 100, min = 0, label }: GaugeProps) => {
         strokeDasharray={`${circumference}`}
         strokeDashoffset={dashOffset}
       />
-      <Circle cx={SIZE / 2} cy={SIZE / 2} r={(SIZE - STROKE) / 2.2} fill="#FFFFFF" />
-      <SvgText x={SIZE / 2} y={SIZE / 2 - 4} textAnchor="middle" fontSize={24} fontWeight="600" fill="#111827">
+      <Circle cx={SIZE / 2} cy={SIZE / 2} r={(SIZE - STROKE) / 2.2} fill={getColor('surface')} />
+      <SvgText x={SIZE / 2} y={SIZE / 2 - 4} textAnchor="middle" fontSize={24} fontWeight="600" fill={getColor('charcoal')}>
         {Math.round(clamped)}
       </SvgText>
       {label ? (
-        <SvgText x={SIZE / 2} y={SIZE / 2 + 24} textAnchor="middle" fontSize={12} fill="#4B5563">
+        <SvgText x={SIZE / 2} y={SIZE / 2 + 24} textAnchor="middle" fontSize={12} fill={getColor('graphite')}>
           {label}
         </SvgText>
       ) : null}

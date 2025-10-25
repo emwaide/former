@@ -2,6 +2,8 @@ import { Text, View } from 'react-native';
 import { MetricTile } from './MetricTile';
 import type { MetricTone, MetricTileProps } from './MetricTile';
 
+import { colorWithOpacity, type ColorToken } from '../../utils/colors';
+
 type MetricsGridProps = {
   metrics: {
     id: string;
@@ -11,7 +13,7 @@ type MetricsGridProps = {
     deltaLabel: string;
     metaLabel: string;
     tone?: MetricTone;
-    accentColor: string;
+    accentColor: ColorToken;
     icon?: MetricTileProps['icon'];
   }[];
 };
@@ -22,7 +24,7 @@ export const MetricsGrid = ({ metrics }: MetricsGridProps) => (
       <Text className="text-[13px] font-[Poppins_600SemiBold] uppercase tracking-[1px] text-muted">
         Body composition
       </Text>
-      <View className="h-px flex-1 bg-[rgba(17,24,39,0.1)]" />
+      <View className="h-px flex-1" style={{ backgroundColor: colorWithOpacity('charcoal', 0.1) }} />
     </View>
 
     <View className="flex-row flex-wrap gap-4">

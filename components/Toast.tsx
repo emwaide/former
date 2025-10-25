@@ -1,6 +1,8 @@
 import { Animated, Text } from 'react-native';
 import { useEffect, useMemo, useRef } from 'react';
 
+import { colorWithOpacity, getColor } from '../utils/colors';
+
 type ToastProps = {
   message: string;
   visible: boolean;
@@ -25,7 +27,7 @@ export const Toast = ({ message, visible }: ToastProps) => {
 
   const shadowStyle = useMemo(
     () => ({
-      shadowColor: 'rgba(15, 23, 42, 0.25)',
+      shadowColor: colorWithOpacity('charcoal', 0.25),
       shadowOffset: { width: 0, height: 6 },
       shadowOpacity: 0.25,
       shadowRadius: 16,
@@ -45,13 +47,13 @@ export const Toast = ({ message, visible }: ToastProps) => {
           bottom: 32,
           padding: 20,
           borderRadius: 16,
-          backgroundColor: '#0B2545',
+          backgroundColor: getColor('navy'),
           transform: [{ translateY }],
         },
         shadowStyle,
       ]}
     >
-      <Text style={{ color: '#FFFFFF', fontFamily: 'Poppins_600SemiBold' }}>{message}</Text>
+      <Text style={{ color: getColor('surface'), fontFamily: 'Poppins_600SemiBold' }}>{message}</Text>
     </Animated.View>
   );
 };
