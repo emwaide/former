@@ -1,11 +1,34 @@
 import { Fragment, ReactNode, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
-import { Feather } from '@expo/vector-icons';
 import { ThemeTokens, useTheme } from '../../theme';
 
 const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
+
+const withAlpha = (color: string, alpha: number) => {
+  if (color.startsWith('rgb')) {
+    const values = color
+      .replace(/rgba?\(/, '')
+      .replace(')', '')
+      .split(',')
+      .map((value) => parseFloat(value.trim()));
+    const [r = 0, g = 0, b = 0] = values.slice(0, 3);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  const sanitized = color.replace('#', '');
+  const expanded =
+    sanitized.length === 3
+      ? sanitized
+          .split('')
+          .map((char) => char + char)
+          .join('')
+      : sanitized;
+  const bigint = parseInt(expanded, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
 
 type ProgressRingProps = {
   progress: number;
@@ -16,11 +39,12 @@ type ProgressRingProps = {
 
 const ProgressRing = ({
   progress,
-  size = 210,
-  strokeWidth = 18,
+  size = 160,
+  strokeWidth = 12,
   children,
   accentGradient,
-}: ProgressRingProps & { accentGradient: [string, string] }) => {
+  trackColor,
+}: ProgressRingProps & { accentGradient: [string, string]; trackColor: string }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const clamped = clamp(progress);
@@ -43,7 +67,7 @@ const ProgressRing = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="rgba(255,255,255,0.22)"
+          stroke={trackColor}
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -88,34 +112,46 @@ export const HeroSection = ({
   const styles = useMemo(() => createStyles(tokens), [tokens]);
   const percent = Math.round(clamp(progressFraction) * 100);
   const firstName = name?.split(' ')[0] ?? name;
-  const initial = firstName?.charAt(0)?.toUpperCase() ?? '?';
+  const trackColor =
+    tokens.mode === 'dark'
+      ? withAlpha('#FFFFFF', 0.2)
+      : withAlpha(tokens.colors.text, 0.1);
 
   return (
-    <View style={{backgroundColor: "white", paddingHorizontal: 20}}>
-      <View style={styles.navRow}>
-        <View style={styles.brandRow}>
-          <View style={styles.brandBadge}>
-            <Feather
-              name="sunrise"
-              size={18}
-              color={tokens.colors.accent}
-              accessibilityElementsHidden
-              importantForAccessibility="no"
-            />
-          </View>
-          <Text style={styles.brandText}>former</Text>
-        </View>
+    <View style={[styles.container, { paddingTop: topInset + tokens.spacing.xl }]}
+      accessibilityRole="header"
+    >
+      <View style={styles.glowTop} />
+      <View style={styles.glowBottom} />
+
+      <View style={styles.copyBlock}>
+        <Text accessibilityRole="header" style={styles.heading}>
+          {`Good morning, ${firstName}`}
+        </Text>
+        <Text style={styles.subheading}>{`${percent}% toward your body recomposition goal`}</Text>
       </View>
 
-      {/* <View style={styles.topRow}> */}
-        <View style={styles.copyBlock}>
-          <Text accessibilityRole="header" style={styles.heading}>
-            {`Good morning, ${firstName}`}
-          </Text>
-          <Text style={styles.subheading}>Let's take a look at your progress so far!</Text>
-        </View>
-        <View style={styles.statsRow} accessibilityRole="text">
-        {[{ label: 'Start', value: startLabel }, { label: 'Now', value: currentLabel }, { label: 'Goal', value: goalLabel }].map((item, index) => (
+      <View
+        style={styles.ringWrapper}
+        accessibilityRole="image"
+        accessibilityLabel={`${percent}% to goal`}
+      >
+        <ProgressRing
+          progress={progressFraction}
+          accentGradient={tokens.colors.ringGradient}
+          trackColor={trackColor}
+        >
+          <Text style={styles.percentLabel}>{`${percent}%`}</Text>
+          <Text style={styles.percentCaption}>toward goal</Text>
+        </ProgressRing>
+      </View>
+
+      <View style={styles.statsRow} accessibilityRole="text">
+        {[
+          { label: 'Start', value: startLabel },
+          { label: 'Now', value: currentLabel },
+          { label: 'Goal', value: goalLabel },
+        ].map((item, index) => (
           <Fragment key={item.label}>
             <View style={styles.statItem}>
               <Text style={styles.statLabel}>{item.label}</Text>
@@ -126,16 +162,6 @@ export const HeroSection = ({
         ))}
       </View>
 
-        <View style={styles.ringWrapper} accessibilityRole="image" accessibilityLabel={`${percent}% to goal`}>
-          <ProgressRing progress={progressFraction} accentGradient={tokens.colors.ringGradient}>
-            <Text style={styles.percentLabel}>{`${percent}%`}</Text>
-            <Text style={styles.percentCaption}>to goal</Text>
-          </ProgressRing>
-        </View>
-      {/* </View> */}
-
-      
-
       {children ? <View style={styles.ctaContainer}>{children}</View> : null}
     </View>
   );
@@ -145,107 +171,51 @@ const createStyles = (tokens: ThemeTokens) =>
   StyleSheet.create({
     container: {
       paddingHorizontal: tokens.spacing.xl,
-      paddingBottom: tokens.spacing.xl,
-      borderBottomLeftRadius: 32,
-      borderBottomRightRadius: 32,
+      paddingBottom: tokens.spacing.lg,
+      borderBottomLeftRadius: 44,
+      borderBottomRightRadius: 44,
       gap: tokens.spacing.lg,
-      marginHorizontal: -tokens.spacing.md,
-    },
-    navRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    brandRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: tokens.spacing.xxs,
-    },
-    brandBadge: {
-      width: 40,
-      height: 40,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'rgba(255,255,255,0.16)',
-    },
-    brandText: {
-      color: tokens.colors.accent,
-      fontSize: tokens.typography.subheading,
-      fontFamily: tokens.typography.fontFamilyAlt,
-      letterSpacing: 0.4,
-    },
-    navActions: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: tokens.spacing.sm,
-    },
-    actionBadge: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'rgba(255,255,255,0.14)',
-    },
-    avatarBadge: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'rgba(255,255,255,0.92)',
-    },
-    avatarText: {
-      color: tokens.colors.brandNavy,
-      fontSize: tokens.typography.subheading,
-      fontFamily: tokens.typography.fontFamilyAlt,
-      letterSpacing: 0.2,
-    },
-    topRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-      gap: tokens.spacing.lg,
+      marginHorizontal: 0,
+      backgroundColor: tokens.colors.card,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: 'rgba(11, 37, 69, 0.08)',
+      shadowColor: tokens.colors.shadow,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 1,
+      shadowRadius: 24,
+      elevation: 6,
+      overflow: 'hidden',
     },
     copyBlock: {
-      flex: 1,
       gap: tokens.spacing.xs,
-      paddingVertical: 20
     },
     heading: {
-      color: tokens.colors.accent,
+      color: tokens.colors.text,
       fontSize: tokens.typography.heading,
-      lineHeight: 34,
+      lineHeight: 30,
       fontFamily: tokens.typography.fontFamilyAlt,
-      letterSpacing: -0.2,
-      paddingVertical: 10
+      letterSpacing: -0.3,
     },
     subheading: {
-      color: tokens.colors.accentSecondary,
+      color: tokens.colors.textSecondary,
       fontSize: tokens.typography.body,
-      lineHeight: tokens.typography.body * 1.4,
+      lineHeight: tokens.typography.body * 1.5,
       fontFamily: tokens.typography.fontFamily,
-      letterSpacing: -0.2,
     },
     ringWrapper: {
-      padding: 0,
-      borderRadius: 999,
-      backgroundColor: 'transparent',
-      flexShrink: 0,
+      paddingTop: tokens.spacing.sm,
       alignItems: 'center',
-      justifyContent: 'center',
     },
     percentLabel: {
       color: tokens.colors.accent,
-      fontSize: 52,
-      lineHeight: 58,
+      fontSize: tokens.typography.numeric,
+      lineHeight: tokens.typography.numeric + 6,
       fontFamily: tokens.typography.fontFamilyAlt,
-      letterSpacing: -0.6,
+      letterSpacing: -0.4,
     },
     percentCaption: {
-      color: tokens.colors.accent,
-      fontSize: tokens.typography.body,
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.typography.caption,
       fontFamily: tokens.typography.fontFamilyMedium,
       letterSpacing: 1,
       textTransform: 'uppercase',
@@ -257,7 +227,10 @@ const createStyles = (tokens: ThemeTokens) =>
       borderRadius: 20,
       paddingVertical: tokens.spacing.sm,
       paddingHorizontal: tokens.spacing.lg,
-      backgroundColor: tokens.colors.background
+      backgroundColor:
+        tokens.mode === 'dark'
+          ? withAlpha(tokens.colors.text, 0.08)
+          : withAlpha(tokens.colors.text, 0.04),
     },
     statItem: {
       flex: 1,
@@ -266,23 +239,41 @@ const createStyles = (tokens: ThemeTokens) =>
     },
     statDivider: {
       width: StyleSheet.hairlineWidth,
-      height: '70%',
-      backgroundColor: tokens.colors.accent,
+      height: '65%',
+      backgroundColor: withAlpha(tokens.colors.text, tokens.mode === 'dark' ? 0.3 : 0.15),
     },
     statLabel: {
-      color: tokens.colors.accentSecondary,
+      color: withAlpha(tokens.colors.text, tokens.mode === 'dark' ? 0.5 : 0.4),
       fontSize: tokens.typography.caption,
       textTransform: 'uppercase',
       letterSpacing: 1,
       fontFamily: tokens.typography.fontFamilyMedium,
     },
     statValue: {
-      color: tokens.colors.accent,
-      fontSize: tokens.typography.body,
+      color: tokens.colors.text,
+      fontSize: tokens.typography.subheading,
       fontFamily: tokens.typography.fontFamilyAlt,
     },
     ctaContainer: {
       marginTop: tokens.spacing.sm,
+    },
+    glowTop: {
+      position: 'absolute',
+      top: -160,
+      right: -120,
+      width: 260,
+      height: 260,
+      backgroundColor: withAlpha(tokens.colors.accent, 0.12),
+      borderRadius: 130,
+    },
+    glowBottom: {
+      position: 'absolute',
+      bottom: -120,
+      left: -80,
+      width: 220,
+      height: 220,
+      backgroundColor: withAlpha(tokens.colors.accentSecondary, 0.12),
+      borderRadius: 110,
     },
   });
 

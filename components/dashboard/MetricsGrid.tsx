@@ -1,25 +1,49 @@
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Link } from 'expo-router';
 import { MetricTile } from './MetricTile';
-import type { MetricTone } from './MetricTile';
+import type { MetricTone, MetricTileProps } from './MetricTile';
 import { ThemeTokens, useTheme } from '../../theme';
+
+const withAlpha = (color: string, alpha: number) => {
+  if (color.startsWith('rgb')) {
+    const values = color
+      .replace(/rgba?\(/, '')
+      .replace(')', '')
+      .split(',')
+      .map((value) => parseFloat(value.trim()));
+    const [r = 0, g = 0, b = 0] = values.slice(0, 3);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  const sanitized = color.replace('#', '');
+  const expanded =
+    sanitized.length === 3
+      ? sanitized
+          .split('')
+          .map((char) => char + char)
+          .join('')
+      : sanitized;
+  const bigint = parseInt(expanded, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
 
 type MetricsGridProps = {
   metrics: {
     id: string;
     label: string;
-    valueLabel: string;
+    value: string;
+    unit: string;
     deltaLabel: string;
     metaLabel: string;
     tone?: MetricTone;
     accentColor: string;
-    progress: number;
+    icon?: MetricTileProps['icon'];
   }[];
-  showMore?: boolean;
 };
 
-export const MetricsGrid = ({ metrics, showMore }: MetricsGridProps) => {
+export const MetricsGrid = ({ metrics }: MetricsGridProps) => {
   const { tokens } = useTheme();
   const styles = useMemo(() => createStyles(tokens), [tokens]);
 
@@ -27,24 +51,21 @@ export const MetricsGrid = ({ metrics, showMore }: MetricsGridProps) => {
     <View style={styles.container}>
       <View style={styles.headerRow}>
         <Text style={styles.title}>Body composition</Text>
-        {showMore ? (
-          <Link href="/(tabs)/trends" style={styles.link} accessibilityRole="link">
-            <Text style={styles.linkText}>See full composition trends →</Text>
-          </Link>
-        ) : null}
+        <View style={styles.headerRule} />
       </View>
 
       <View style={styles.grid}>
-        {metrics.map(({ id, label, valueLabel, deltaLabel, metaLabel, accentColor, progress, tone }) => (
+        {metrics.map(({ id, label, value, unit, deltaLabel, metaLabel, accentColor, tone, icon }) => (
           <MetricTile
             key={id}
             label={label}
-            valueLabel={valueLabel}
+            value={value}
+            unit={unit}
             deltaLabel={deltaLabel}
             metaLabel={metaLabel}
             tone={tone}
             accentColor={accentColor}
-            progress={progress}
+            icon={icon}
           />
         ))}
       </View>
@@ -59,8 +80,8 @@ const createStyles = (tokens: ThemeTokens) =>
     },
     headerRow: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
+      gap: tokens.spacing.sm,
     },
     title: {
       color: tokens.colors.textSecondary,
@@ -69,13 +90,10 @@ const createStyles = (tokens: ThemeTokens) =>
       textTransform: 'uppercase',
       letterSpacing: 0.8,
     },
-    link: {
-      paddingVertical: tokens.spacing.xs,
-    },
-    linkText: {
-      color: tokens.colors.textSubtle,
-      fontSize: tokens.typography.caption,
-      fontFamily: tokens.typography.fontFamilyMedium,
+    headerRule: {
+      flex: 1,
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: withAlpha(tokens.colors.text, 0.08),
     },
     grid: {
       flexDirection: 'row',

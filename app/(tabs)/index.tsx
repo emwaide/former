@@ -4,12 +4,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
 import { HeroSection } from '../../components/dashboard/HeroSection';
-import { LogCTA } from '../../components/dashboard/LogCTA';
 import { WeeklyChangeCard } from '../../components/dashboard/WeeklyChangeCard';
 import { MetricsGrid } from '../../components/dashboard/MetricsGrid';
 import { StreakCard } from '../../components/dashboard/StreakCard';
 import { GuidanceCard } from '../../components/dashboard/GuidanceCard';
 import { EmptyState } from '../../components';
+import type { MetricTileProps } from '../../components/dashboard/MetricTile';
 
 import { useUser } from '../../hooks/useUser';
 import { useReadings } from '../../hooks/useReadings';
@@ -117,11 +117,12 @@ const buildGuidance = (latest: Reading, previous: Reading | undefined): Guidance
 type DashboardMetric = {
   id: string;
   label: string;
-  valueLabel: string;
+  value: string;
+  unit: string;
   deltaLabel: string;
   metaLabel: string;
   accentColor: string;
-  progress: number;
+  icon: MetricTileProps['icon'];
   tone?: 'positive' | 'negative' | 'neutral';
 };
 
@@ -130,13 +131,17 @@ type DeltaResult = { text: string; tone: 'positive' | 'negative' | 'neutral' };
 const formatDeltaLabel = (
   value: number,
   unit: string,
-  positiveIsGood: boolean,
+  positiveChangeIsGood: boolean,
 ): DeltaResult => {
   if (Math.abs(value) < 0.1) {
     return { text: 'Holding steady vs start', tone: 'neutral' as const };
   }
   const direction = value < 0 ? 'Down' : 'Up';
-  const tone = value < 0 === positiveIsGood ? 'positive' : 'negative';
+  const isPositiveChange = value >= 0;
+  const tone =
+    (isPositiveChange && positiveChangeIsGood) || (!isPositiveChange && !positiveChangeIsGood)
+      ? 'positive'
+      : 'negative';
   const formattedUnit = unit ? ` ${unit}` : '';
   return {
     text: `${direction} ${Math.abs(value).toFixed(1)}${formattedUnit} since start`,
@@ -146,14 +151,18 @@ const formatDeltaLabel = (
 
 const formatPercentDeltaLabel = (
   value: number,
-  positiveIsGood: boolean,
+  positiveChangeIsGood: boolean,
   precision = 1,
 ): DeltaResult => {
   if (Math.abs(value) < 0.1) {
     return { text: 'Holding steady vs start', tone: 'neutral' as const };
   }
   const direction = value < 0 ? 'Down' : 'Up';
-  const tone = value < 0 === positiveIsGood ? 'positive' : 'negative';
+  const isPositiveChange = value >= 0;
+  const tone =
+    (isPositiveChange && positiveChangeIsGood) || (!isPositiveChange && !positiveChangeIsGood)
+      ? 'positive'
+      : 'negative';
   return {
     text: `${direction} ${Math.abs(value).toFixed(precision)} pts since start`,
     tone,
@@ -163,7 +172,6 @@ const formatPercentDeltaLabel = (
 const buildMetrics = (
   latest: Reading,
   first: Reading,
-  progressFraction: number,
   unit: UnitSystem,
   tokens: ThemeTokens,
 ): DashboardMetric[] => {
@@ -178,93 +186,137 @@ const buildMetrics = (
   const waterDelta = latest.bodyWaterPct - first.bodyWaterPct;
   const visceralDelta = latest.visceralFatIdx - first.visceralFatIdx;
 
-  const weightDeltaResult = formatDeltaLabel(weightDelta, weightUnit, true);
+  const weightDeltaResult = formatDeltaLabel(weightDelta, weightUnit, false);
   const muscleDeltaResult = formatDeltaLabel(muscleDelta, weightUnit, true);
-  const visceralDeltaResult = formatDeltaLabel(
-    visceralDelta,
-    '',
-    false,
-  );
-  const proteinDeltaResult = formatPercentDeltaLabel(
-    proteinDelta,
-    true,
-  );
+  const visceralDeltaResult = formatDeltaLabel(visceralDelta, 'level', false);
+  const proteinDeltaResult = formatPercentDeltaLabel(proteinDelta, true);
   const waterDeltaResult = formatPercentDeltaLabel(waterDelta, true);
   const fatDeltaResult = formatPercentDeltaLabel(fatDelta, false);
+
+  const weightBadge = Math.abs(weightDelta) < 0.1
+    ? 'Holding steady'
+    : `${weightDelta > 0 ? '+' : ''}${Math.abs(weightDelta).toFixed(1)} ${weightUnit}`;
+  const fatBadge = Math.abs(fatDelta) < 0.1
+    ? 'Holding steady'
+    : `${fatDelta > 0 ? '+' : ''}${Math.abs(fatDelta).toFixed(1)}%`;
+  const muscleBadge = Math.abs(muscleDelta) < 0.1
+    ? 'Holding steady'
+    : `${muscleDelta > 0 ? '+' : ''}${Math.abs(muscleDelta).toFixed(1)} ${weightUnit}`;
+  const proteinBadge = Math.abs(proteinDelta) < 0.1
+    ? 'Holding steady'
+    : `${proteinDelta > 0 ? '+' : ''}${Math.abs(proteinDelta).toFixed(1)}%`;
+  const waterBadge = Math.abs(waterDelta) < 0.1
+    ? 'Holding steady'
+    : `${waterDelta > 0 ? '+' : ''}${Math.abs(waterDelta).toFixed(1)}%`;
+  const visceralBadge = Math.abs(visceralDelta) < 0.1
+    ? 'Holding steady'
+    : `${visceralDelta > 0 ? '+' : ''}${Math.abs(visceralDelta).toFixed(0)} lvl`;
+
+  const currentWeightDisplay = formatWeight(latest.weightKg, unit);
+  const [weightValuePart, ...weightUnitParts] = currentWeightDisplay.split(' ');
+  const currentWeightValue = weightValuePart;
+  const currentWeightUnit = weightUnitParts.join(' ');
+
+  const currentMuscleDisplay = formatMass(latest.muscleMassKg, unit);
+  const [muscleValuePart, ...muscleUnitParts] = currentMuscleDisplay.split(' ');
+  const currentMuscleValue = muscleValuePart;
+  const currentMuscleUnit = muscleUnitParts.join(' ');
 
   return [
     {
       id: 'weight',
       label: 'Weight',
-      valueLabel: formatWeight(latest.weightKg, unit),
-      deltaLabel: weightDeltaResult.text,
-      metaLabel: `Start ${formatWeight(first.weightKg, unit)}`,
-      accentColor: tokens.colors.brandNavy,
-      progress: clamp(progressFraction),
+      value: currentWeightValue,
+      unit: currentWeightUnit,
+      deltaLabel: weightBadge,
+      metaLabel:
+        weightDeltaResult.tone === 'positive'
+          ? 'Consistent downward trend'
+          : weightDeltaResult.tone === 'negative'
+            ? 'Weight trending upward'
+            : 'Holding steady',
+      accentColor: tokens.colors.accent,
+      icon: 'trending-down',
       tone: weightDeltaResult.tone,
     },
     {
       id: 'bodyFat',
-      label: 'Body Fat %',
-      valueLabel: `${latest.bodyFatPct.toFixed(1)}%`,
-      deltaLabel: fatDeltaResult.text,
-      metaLabel: `Start ${first.bodyFatPct.toFixed(1)}%`,
-      accentColor: tokens.colors.danger,
-      progress: clamp(
-        first.bodyFatPct
-          ? 1 - latest.bodyFatPct / first.bodyFatPct
-          : 0.5,
-      ),
+      label: 'Body Fat',
+      value: latest.bodyFatPct.toFixed(1),
+      unit: '%',
+      deltaLabel: fatBadge,
+      metaLabel:
+        fatDeltaResult.tone === 'positive'
+          ? 'Healthy reduction rate'
+          : fatDeltaResult.tone === 'negative'
+            ? 'Slight increase — monitor'
+            : 'Stable vs start',
+      accentColor: tokens.colors.accent,
+      icon: 'percent',
       tone: fatDeltaResult.tone,
     },
     {
       id: 'muscle',
       label: 'Muscle Mass',
-      valueLabel: formatMass(latest.muscleMassKg, unit),
-      deltaLabel: muscleDeltaResult.text,
-      metaLabel: `Start ${formatMass(first.muscleMassKg, unit)}`,
-      accentColor: tokens.colors.success,
-      progress: clamp(
-        first.muscleMassKg
-          ? latest.muscleMassKg / first.muscleMassKg
-          : 0.5,
-      ),
+      value: currentMuscleValue,
+      unit: currentMuscleUnit,
+      deltaLabel: muscleBadge,
+      metaLabel:
+        muscleDeltaResult.tone === 'positive'
+          ? 'Building lean tissue'
+          : muscleDeltaResult.tone === 'negative'
+            ? 'Watch recovery this week'
+            : 'Maintaining lean mass',
+      accentColor: tokens.colors.accent,
+      icon: 'activity',
       tone: muscleDeltaResult.tone,
     },
     {
       id: 'protein',
-      label: 'Protein %',
-      valueLabel: `${latest.proteinPct.toFixed(1)}%`,
-      deltaLabel: proteinDeltaResult.text,
-      metaLabel: `Start ${first.proteinPct.toFixed(1)}%`,
-      accentColor: tokens.colors.accentSecondary,
-      progress: clamp(latest.proteinPct / 100),
+      label: 'Protein',
+      value: latest.proteinPct.toFixed(1),
+      unit: '%',
+      deltaLabel: proteinBadge,
+      metaLabel:
+        proteinDeltaResult.tone === 'positive'
+          ? 'Good protein retention'
+          : proteinDeltaResult.tone === 'negative'
+            ? 'Slight dip — add a serving'
+            : 'On track with intake',
+      accentColor: tokens.colors.accent,
+      icon: 'bar-chart-2',
       tone: proteinDeltaResult.tone,
     },
     {
       id: 'water',
-      label: 'Water %',
-      valueLabel: `${latest.bodyWaterPct.toFixed(1)}%`,
-      deltaLabel: waterDeltaResult.text,
-      metaLabel: `Start ${first.bodyWaterPct.toFixed(1)}%`,
-      accentColor: tokens.colors.accentSecondary,
-      progress: clamp(latest.bodyWaterPct / 100),
+      label: 'Water',
+      value: latest.bodyWaterPct.toFixed(1),
+      unit: '%',
+      deltaLabel: waterBadge,
+      metaLabel:
+        waterDeltaResult.tone === 'positive'
+          ? 'Well hydrated'
+          : waterDeltaResult.tone === 'negative'
+            ? 'Hydration dipped — add fluids'
+            : 'Hydration holding steady',
+      accentColor: tokens.colors.accent,
+      icon: 'droplet',
       tone: waterDeltaResult.tone,
     },
     {
       id: 'visceral',
       label: 'Visceral Fat',
-      valueLabel: latest.visceralFatIdx.toFixed(1),
-      deltaLabel: visceralDeltaResult.text
-        .replace(' since start', '')
-        .trim(),
-      metaLabel: `Start ${first.visceralFatIdx.toFixed(1)}`,
-      accentColor: tokens.colors.brandNavy,
-      progress: clamp(
-        1 -
-          latest.visceralFatIdx /
-            Math.max(first.visceralFatIdx, 20),
-      ),
+      value: latest.visceralFatIdx.toFixed(1),
+      unit: 'lvl',
+      deltaLabel: visceralBadge,
+      metaLabel:
+        visceralDeltaResult.tone === 'positive'
+          ? 'Improving core health'
+          : visceralDeltaResult.tone === 'negative'
+            ? 'Slight rise — stay mindful'
+            : 'Holding within range',
+      accentColor: tokens.colors.accent,
+      icon: 'shield',
       tone: visceralDeltaResult.tone,
     },
   ];
@@ -367,7 +419,6 @@ export const DashboardContent = ({
   const metrics = buildMetrics(
     latest,
     first,
-    progressFraction,
     user.unitSystem,
     tokens,
   );
@@ -381,6 +432,7 @@ export const DashboardContent = ({
     <View style={themed.gradientBackground}>
       <ScrollView
         style={{ flex: 1 }}
+        contentContainerStyle={themed.contentContainer}
         showsVerticalScrollIndicator={false}
       >
         <View style={themed.heroSpacing}>
@@ -392,10 +444,6 @@ export const DashboardContent = ({
             progressFraction={progressFraction}
             topInset={insets.top}
           />
-        </View>
-
-        <View style={themed.sectionSpacing}>
-          <LogCTA onPress={() => router.push('/(tabs)/log')} />
         </View>
 
         <View style={themed.sectionSpacing}>
@@ -413,7 +461,7 @@ export const DashboardContent = ({
         </View>
 
         <View style={themed.sectionSpacing}>
-          <MetricsGrid metrics={metrics.slice(0, 6)} showMore={metrics.length > 6} />
+          <MetricsGrid metrics={metrics.slice(0, 6)} />
         </View>
 
         {guidance ? (
@@ -464,10 +512,15 @@ const createStyles = (tokens: ThemeTokens, insets: { top: number; bottom: number
       backgroundColor: tokens.colors.background,
     },
     scrollContainer: {
-      marginHorizontal: tokens.spacing.md,
-      marginTop: tokens.spacing.sm,
-      marginBottom: tokens.spacing.lg + Math.max(insets.bottom, tokens.spacing.sm),
+      paddingHorizontal: tokens.spacing.xl,
+      paddingTop: tokens.spacing.xl + insets.top,
+      paddingBottom: tokens.spacing.xl + Math.max(insets.bottom, tokens.spacing.lg),
       gap: tokens.spacing.xl,
+    },
+    contentContainer: {
+      paddingHorizontal: tokens.spacing.xl,
+      paddingTop: tokens.spacing.lg,
+      paddingBottom: tokens.spacing.xl + Math.max(insets.bottom, tokens.spacing.md),
     },
     loadingScreen: {
       flex: 1,
@@ -492,7 +545,8 @@ const createStyles = (tokens: ThemeTokens, insets: { top: number; bottom: number
       marginBottom: tokens.spacing.xl,
     },
     sectionSpacing: {
-      gap: tokens.spacing.sm,
+      marginTop: tokens.spacing.xl,
+      gap: tokens.spacing.md,
     },
     sectionHeaderRow: {
       flexDirection: 'row',
@@ -500,14 +554,15 @@ const createStyles = (tokens: ThemeTokens, insets: { top: number; bottom: number
       gap: tokens.spacing.sm,
     },
     sectionHeaderText: {
-      color: tokens.colors.brandNavy,
-      fontSize: 16,
-      fontFamily: tokens.typography.fontFamilyAlt,
-      letterSpacing: -0.02,
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.typography.caption,
+      fontFamily: tokens.typography.fontFamilyMedium,
+      textTransform: 'uppercase',
+      letterSpacing: 0.8,
     },
     sectionHeaderRule: {
       flex: 1,
-      height: 1,
-      backgroundColor: withAlpha(tokens.colors.accentSecondary, 0.2),
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: withAlpha(tokens.colors.text, 0.08),
     },
   });

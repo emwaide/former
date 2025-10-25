@@ -40,31 +40,28 @@ export const GuidanceCard = ({ message, actionLabel, onAction }: GuidanceCardPro
 
   return (
     <View style={styles.card}>
-      <View style={styles.row}>
-        <View style={styles.iconBadge}>
-          <Feather
-            name="sun"
-            size={18}
-            color={tokens.colors.accentSecondary}
-            accessibilityElementsHidden
-            importantForAccessibility="no"
-          />
-        </View>
-        <View style={styles.copy}>
-          <Text style={styles.title}>Today’s insight</Text>
-          <Text style={styles.message}>{message}</Text>
-        </View>
+      <View style={styles.iconBadge}>
+        <Feather
+          name="sparkles"
+          size={16}
+          color={tokens.colors.accent}
+          accessibilityElementsHidden
+          importantForAccessibility="no"
+        />
       </View>
-
-      {actionLabel && onAction ? (
-        <Pressable
-          accessibilityRole="button"
-          onPress={onAction}
-          style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-        >
-          <Text style={styles.buttonLabel}>{actionLabel}</Text>
-        </Pressable>
-      ) : null}
+      <View style={styles.copy}>
+        <Text style={styles.title}>Today’s insight</Text>
+        <Text style={styles.message}>{message}</Text>
+        {actionLabel && onAction ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onAction}
+            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+          >
+            <Text style={styles.buttonLabel}>{actionLabel}</Text>
+          </Pressable>
+        ) : null}
+      </View>
     </View>
   );
 };
@@ -72,59 +69,55 @@ export const GuidanceCard = ({ message, actionLabel, onAction }: GuidanceCardPro
 const createStyles = (tokens: ThemeTokens) =>
   StyleSheet.create({
     card: {
-      borderRadius: tokens.radius.card,
+      borderRadius: 20,
       backgroundColor:
         tokens.mode === 'dark'
-          ? withAlpha(tokens.colors.guidanceGradient[0], 0.75)
-          : withAlpha(tokens.colors.aquaSoft, 0.55),
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: withAlpha(tokens.colors.brandMid, tokens.mode === 'dark' ? 0.4 : 0.3),
+          ? withAlpha(tokens.colors.accentSecondary, 0.18)
+          : withAlpha(tokens.colors.accentSecondary, 0.12),
+      borderWidth: 1,
+      borderColor: withAlpha(tokens.colors.accent, 0.2),
       shadowColor: tokens.colors.shadow,
-      shadowOffset: { width: 0, height: 6 },
+      shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 1,
-      shadowRadius: 16,
-      elevation: 4,
+      shadowRadius: 14,
+      elevation: 3,
       padding: tokens.spacing.lg,
-      gap: tokens.spacing.md,
-    },
-    row: {
       flexDirection: 'row',
       gap: tokens.spacing.md,
-      alignItems: 'flex-start',
     },
     iconBadge: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor:
-        tokens.mode === 'dark'
-          ? withAlpha(tokens.colors.brandMid, 0.32)
-          : withAlpha(tokens.colors.accentSecondary, 0.18),
+      backgroundColor: tokens.colors.card,
+      shadowColor: withAlpha(tokens.colors.accent, 0.25),
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 1,
+      shadowRadius: 6,
     },
     copy: {
       flex: 1,
-      gap: tokens.spacing.xs,
+      gap: tokens.spacing.sm,
     },
     title: {
-      color: tokens.mode === 'dark' ? tokens.colors.text : tokens.colors.brandNavy,
-      fontSize: tokens.typography.caption,
+      color: tokens.colors.text,
+      fontSize: tokens.typography.body,
       fontFamily: tokens.typography.fontFamilyMedium,
-      textTransform: 'uppercase',
-      letterSpacing: 0.8,
+      letterSpacing: -0.1,
     },
     message: {
-      color: tokens.mode === 'dark' ? tokens.colors.text : tokens.colors.brandNavy,
-      fontSize: tokens.typography.body,
-      lineHeight: tokens.typography.body * 1.4,
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.typography.caption,
+      lineHeight: tokens.typography.caption * 1.6,
       fontFamily: tokens.typography.fontFamily,
     },
     button: {
       alignSelf: 'flex-start',
-      backgroundColor: tokens.colors.brandNavy,
+      backgroundColor: tokens.colors.accent,
       paddingHorizontal: tokens.spacing.lg,
-      paddingVertical: tokens.spacing.sm,
+      paddingVertical: tokens.spacing.xs,
       borderRadius: tokens.radius.pill,
     },
     buttonPressed: {
@@ -132,8 +125,10 @@ const createStyles = (tokens: ThemeTokens) =>
     },
     buttonLabel: {
       color: '#FFFFFF',
-      fontSize: tokens.typography.body,
-      fontFamily: tokens.typography.fontFamilyAlt,
+      fontSize: tokens.typography.caption,
+      fontFamily: tokens.typography.fontFamilyMedium,
+      letterSpacing: 0.6,
+      textTransform: 'uppercase',
     },
   });
 

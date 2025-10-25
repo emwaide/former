@@ -62,20 +62,12 @@ export const StreakCard = ({ loggedDays, loggedCount, onViewHistory }: StreakCar
         ) : null}
       </View>
 
-      <View
-        style={styles.summaryRow}
-        accessibilityRole="text"
-        accessibilityLabel={`This week ${weekLoggedLabel}`}
-      >
+      <View style={styles.summaryRow} accessibilityRole="text" accessibilityLabel={`This week ${weekLoggedLabel}`}>
         <Text style={styles.summaryLabel}>This week</Text>
         <Text style={styles.summaryValue}>{weekLoggedLabel}</Text>
       </View>
 
-      <View
-        style={styles.segmentRow}
-        accessibilityRole="image"
-        accessibilityLabel={`${loggedCount} days logged this week`}
-      >
+      <View style={styles.segmentRow} accessibilityRole="image" accessibilityLabel={`${loggedCount} days logged this week`}>
         {loggedDays.map((day, index) => (
           <View
             key={index}
@@ -97,16 +89,16 @@ export const StreakCard = ({ loggedDays, loggedCount, onViewHistory }: StreakCar
 const createStyles = (tokens: ThemeTokens) =>
   StyleSheet.create({
     card: {
-      borderRadius: tokens.radius.card,
+      borderRadius: 20,
       padding: tokens.spacing.lg,
       gap: tokens.spacing.lg,
       backgroundColor: tokens.colors.card,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: withAlpha(tokens.colors.mutedBorder, 0.6),
+      borderWidth: 1,
+      borderColor: withAlpha(tokens.colors.text, 0.08),
       shadowColor: tokens.colors.shadow,
-      shadowOffset: { width: 0, height: 8 },
+      shadowOffset: { width: 0, height: 6 },
       shadowOpacity: 1,
-      shadowRadius: 18,
+      shadowRadius: 16,
       elevation: 4,
     },
     headerRow: {
@@ -115,9 +107,11 @@ const createStyles = (tokens: ThemeTokens) =>
       alignItems: 'center',
     },
     title: {
-      color: tokens.mode === 'dark' ? tokens.colors.text : tokens.colors.brandNavy,
-      fontSize: tokens.typography.subheading,
-      fontFamily: tokens.typography.fontFamilyAlt,
+      color: tokens.colors.text,
+      fontSize: tokens.typography.body,
+      fontFamily: tokens.typography.fontFamilyMedium,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
     },
     linkText: {
       color: tokens.colors.textSubtle,
@@ -133,17 +127,17 @@ const createStyles = (tokens: ThemeTokens) =>
       color: tokens.colors.textSecondary,
       fontSize: tokens.typography.caption,
       textTransform: 'uppercase',
-      letterSpacing: 0.6,
+      letterSpacing: 0.8,
       fontFamily: tokens.typography.fontFamilyMedium,
     },
     summaryValue: {
-      color: tokens.mode === 'dark' ? tokens.colors.text : tokens.colors.brandNavy,
+      color: tokens.colors.accent,
       fontSize: tokens.typography.body,
-      fontFamily: tokens.typography.fontFamilyAlt,
+      fontFamily: tokens.typography.fontFamilyMedium,
     },
     segmentRow: {
       flexDirection: 'row',
-      gap: tokens.spacing.sm,
+      gap: tokens.spacing.xs,
       alignItems: 'center',
       marginTop: tokens.spacing.sm,
     },
@@ -153,10 +147,14 @@ const createStyles = (tokens: ThemeTokens) =>
       borderRadius: 8,
     },
     segmentInactive: {
-      backgroundColor: withAlpha(tokens.colors.aquaSoft, 0.35),
+      backgroundColor: withAlpha(tokens.colors.text, 0.06),
     },
     segmentActive: {
-      backgroundColor: tokens.colors.accentSecondary,
+      backgroundColor: tokens.colors.accent,
+      shadowColor: withAlpha(tokens.colors.accent, 0.35),
+      shadowOpacity: 1,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 1 },
     },
     footerRow: {
       flexDirection: 'row',
@@ -168,10 +166,10 @@ const createStyles = (tokens: ThemeTokens) =>
       paddingHorizontal: tokens.spacing.md,
       paddingVertical: 6,
       borderRadius: tokens.radius.pill,
-      backgroundColor: withAlpha(tokens.colors.accentSecondary, 0.18),
+      backgroundColor: withAlpha(tokens.colors.accent, 0.14),
     },
     badgeText: {
-      color: tokens.mode === 'dark' ? tokens.colors.text : tokens.colors.accentSecondary,
+      color: tokens.colors.accent,
       fontSize: tokens.typography.caption,
       fontFamily: tokens.typography.fontFamilyMedium,
       letterSpacing: 0.6,
@@ -179,8 +177,8 @@ const createStyles = (tokens: ThemeTokens) =>
     },
     caption: {
       color: tokens.colors.textSecondary,
-      fontSize: tokens.typography.body,
-      lineHeight: tokens.typography.body * 1.4,
+      fontSize: tokens.typography.caption,
+      lineHeight: tokens.typography.caption * 1.6,
       fontFamily: tokens.typography.fontFamily,
       flex: 1,
     },

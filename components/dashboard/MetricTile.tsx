@@ -7,16 +7,15 @@ export type MetricTone = 'positive' | 'negative' | 'neutral';
 
 export type MetricTileProps = {
   label: string;
-  valueLabel: string;
+  value: string;
+  unit: string;
   deltaLabel: string;
   metaLabel: string;
   accentColor: string;
-  progress: number;
   tone?: MetricTone;
+  icon?: keyof typeof Feather.glyphMap;
   style?: StyleProp<ViewStyle>;
 };
-
-const clamp = (value: number) => Math.max(0, Math.min(1, value));
 
 const withAlpha = (color: string, alpha: number) => {
   if (color.startsWith('rgb')) {
@@ -46,7 +45,7 @@ const withAlpha = (color: string, alpha: number) => {
 const toneColor = (tokens: ThemeTokens, tone: MetricTone = 'neutral') => {
   switch (tone) {
     case 'positive':
-      return tokens.colors.success;
+      return tokens.colors.accent;
     case 'negative':
       return tokens.colors.danger;
     default:
@@ -56,46 +55,40 @@ const toneColor = (tokens: ThemeTokens, tone: MetricTone = 'neutral') => {
 
 export const MetricTile = ({
   label,
-  valueLabel,
+  value,
+  unit,
   deltaLabel,
   metaLabel,
   accentColor,
-  progress,
   tone = 'neutral',
+  icon = 'activity',
   style,
 }: MetricTileProps) => {
   const { tokens } = useTheme();
   const styles = useMemo(() => createStyles(tokens), [tokens]);
   const deltaColor = toneColor(tokens, tone);
-  const deltaBackground =
-    tone === 'neutral'
-      ? withAlpha(tokens.colors.brandMid, 0.12)
-      : withAlpha(deltaColor, 0.16);
 
   return (
     <View
       style={[styles.card, style]}
       accessibilityRole="summary"
-      accessibilityLabel={`${label} ${valueLabel}. ${deltaLabel}. ${metaLabel}`}
+      accessibilityLabel={`${label} ${value} ${unit}. ${deltaLabel}. ${metaLabel}`}
     >
       <View style={styles.header}>
         <Text style={styles.label}>{label}</Text>
-        <Feather
-          name="arrow-up-right"
-          size={16}
-          color={tokens.colors.textSubtle}
+        <View style={[styles.iconBadge, { backgroundColor: withAlpha(accentColor, 0.12) }]}
           accessibilityElementsHidden
           importantForAccessibility="no"
-        />
+        >
+          <Feather name={icon} size={16} color={accentColor} />
+        </View>
       </View>
-      <Text style={styles.value}>{valueLabel}</Text>
-      <View style={[styles.deltaBadge, { backgroundColor: deltaBackground }]}>
-        <Text style={[styles.deltaText, { color: deltaColor }]}>{deltaLabel}</Text>
+      <View style={styles.valueRow}>
+        <Text style={styles.value}>{value}</Text>
+        {unit ? <Text style={styles.unit}>{unit}</Text> : null}
       </View>
+      <Text style={[styles.deltaText, { color: deltaColor }]}>{deltaLabel}</Text>
       <Text style={styles.meta}>{metaLabel}</Text>
-      <View style={styles.barTrack}>
-        <View style={[styles.barFill, { width: `${clamp(progress) * 100}%`, backgroundColor: accentColor }]} />
-      </View>
     </View>
   );
 };
@@ -109,13 +102,13 @@ const createStyles = (tokens: ThemeTokens) =>
       gap: tokens.spacing.sm,
       flex: 1,
       minWidth: 160,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: tokens.colors.mutedBorder,
+      borderWidth: 1,
+      borderColor: withAlpha(tokens.colors.text, 0.08),
       shadowColor: tokens.colors.shadow,
-      shadowOffset: { width: 0, height: 4 },
+      shadowOffset: { width: 0, height: 6 },
       shadowOpacity: 1,
-      shadowRadius: 12,
-      elevation: 3,
+      shadowRadius: 14,
+      elevation: 4,
     },
     header: {
       flexDirection: 'row',
@@ -126,25 +119,33 @@ const createStyles = (tokens: ThemeTokens) =>
       color: tokens.colors.textSecondary,
       fontSize: tokens.typography.caption,
       fontFamily: tokens.typography.fontFamilyMedium,
-      letterSpacing: 0.6,
+      letterSpacing: 0.8,
       textTransform: 'uppercase',
     },
+    iconBadge: {
+      width: 32,
+      height: 32,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    valueRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      gap: tokens.spacing.xs,
+    },
     value: {
-      color: tokens.colors.brandNavy,
-      fontSize: 34,
-      lineHeight: 40,
+      color: tokens.colors.text,
+      fontSize: 30,
+      lineHeight: 34,
       fontFamily: tokens.typography.fontFamilyAlt,
-      letterSpacing: -0.2,
+      letterSpacing: -0.3,
     },
-    deltaBadge: {
-      marginTop: tokens.spacing.xs,
-      alignSelf: 'flex-start',
-      paddingHorizontal: tokens.spacing.sm,
-      paddingVertical: 4,
-      borderRadius: tokens.radius.pill,
-    },
-    deltaText: {
-      fontSize: tokens.typography.body,
+    unit: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.typography.caption,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
       fontFamily: tokens.typography.fontFamilyMedium,
     },
     meta: {
@@ -154,16 +155,9 @@ const createStyles = (tokens: ThemeTokens) =>
       fontFamily: tokens.typography.fontFamily,
       marginTop: tokens.spacing.xs,
     },
-    barTrack: {
-      height: 6,
-      borderRadius: 8,
-      backgroundColor: withAlpha(tokens.colors.aquaSoft, 0.4),
-      overflow: 'hidden',
-      marginTop: tokens.spacing.sm,
-    },
-    barFill: {
-      height: '100%',
-      borderRadius: 8,
+    deltaText: {
+      fontSize: tokens.typography.body,
+      fontFamily: tokens.typography.fontFamilyMedium,
     },
   });
 
