@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
-import { Link } from 'expo-router';
-import { ThemeTokens, useTheme } from '../../theme';
+import { Text, View } from 'react-native';
+import Svg, { Defs, LinearGradient as SvgGradient, Path, Stop, Circle, Line } from 'react-native-svg';
+import { Feather } from '@expo/vector-icons';
 
 type WeeklyChangeCardProps = {
   changeLabel: string;
@@ -11,127 +10,128 @@ type WeeklyChangeCardProps = {
   data: number[];
 };
 
-const buildSparklinePath = (values: number[], width: number, height: number) => {
+const CHART_WIDTH = 240;
+const CHART_HEIGHT = 120;
+
+const withAlpha = (color: string, alpha: number) => {
+  const sanitized = color.replace('#', '');
+  const expanded =
+    sanitized.length === 3
+      ? sanitized
+          .split('')
+          .map((char) => char + char)
+          .join('')
+      : sanitized;
+  const bigint = parseInt(expanded, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+const buildLinePoints = (values: number[]) => {
   if (values.length === 0) {
-    return '';
-  }
-  if (values.length === 1) {
-    const midY = height / 2;
-    return `M0 ${midY} L${width} ${midY}`;
+    return [];
   }
   const min = Math.min(...values);
   const max = Math.max(...values);
   const range = max - min || 1;
-  const step = width / (values.length - 1);
-  return values
-    .map((value, index) => {
-      const x = index * step;
-      const normalized = (value - min) / range;
-      const y = height - normalized * height;
-      return `${index === 0 ? 'M' : 'L'}${x} ${y}`;
-    })
-    .join(' ');
+  const padding = range * 0.2;
+  const adjustedMax = max + padding;
+  const adjustedMin = min - padding;
+  const adjustedRange = adjustedMax - adjustedMin || 1;
+
+  return values.map((value, index) => {
+    const x = (index / Math.max(values.length - 1, 1)) * CHART_WIDTH;
+    const normalized = (value - adjustedMin) / adjustedRange;
+    const y = CHART_HEIGHT - normalized * CHART_HEIGHT;
+    return { x, y, value };
+  });
 };
 
 export const WeeklyChangeCard = ({ changeLabel, changeValue, subtext, data }: WeeklyChangeCardProps) => {
-  const { tokens } = useTheme();
-  const styles = useMemo(() => createStyles(tokens), [tokens]);
-  const strokeColor = changeValue <= 0 ? tokens.colors.success : tokens.colors.danger;
+  const strokeColor = changeValue <= 0 ? '#37D0B4' : '#F87171';
+  const points = useMemo(() => buildLinePoints(data), [data]);
+  const linePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x} ${point.y}`).join(' ');
+  const areaPath = linePath ? `${linePath} L ${CHART_WIDTH} ${CHART_HEIGHT} L 0 ${CHART_HEIGHT} Z` : '';
+  const [valuePart, unitPart] = changeLabel.split(' ');
 
   return (
-    <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <Text style={styles.title}>This Week’s Change</Text>
-        <Link href="/(tabs)/trends" style={styles.link} accessibilityRole="link">
-          <Text style={styles.linkText}>View in Trends →</Text>
-        </Link>
+    <View className="relative overflow-hidden rounded-[20px] border border-[rgba(17,24,39,0.08)] bg-surface p-6 shadow-soft">
+      <View className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[rgba(105,224,218,0.12)]" />
+
+      <View className="mb-4 flex-row items-center justify-between">
+        <View className="flex-row items-center gap-3">
+          <View className="h-8 w-8 items-center justify-center rounded-[12px] bg-[rgba(55,208,180,0.12)]">
+            <Feather name="trending-down" size={16} color="#37D0B4" accessibilityElementsHidden importantForAccessibility="no" />
+          </View>
+          <Text className="text-[16px] font-[Poppins_600SemiBold] text-charcoal">Weight trend</Text>
+        </View>
+        <View className="items-end">
+          <View className="flex-row items-baseline gap-2">
+            <Text className="text-[32px] font-[Poppins_600SemiBold] leading-[38px]" style={{ color: strokeColor }}>
+              {valuePart}
+            </Text>
+            {unitPart ? (
+              <Text className="text-[13px] font-[Poppins_500Medium] uppercase tracking-[1px] text-muted">
+                {`${unitPart} this week`}
+              </Text>
+            ) : null}
+          </View>
+        </View>
       </View>
 
-      <View style={styles.metricRow}>
-        <View style={styles.metricCopy}>
-          <Text style={[styles.metricValue, { color: strokeColor }]}>{changeLabel}</Text>
-          <Text style={styles.metricCaption}>{subtext}</Text>
-        </View>
-        <View accessible accessibilityLabel="7 day weight trend" style={styles.sparklineWrapper}>
-          <Svg width="100%" height="100%" viewBox="0 0 120 48" preserveAspectRatio="none">
-            <Path
-              d={buildSparklinePath(data, 120, 48)}
-              stroke={tokens.colors.brandMid}
-              strokeWidth={2.5}
-              fill="none"
+      <View className="mb-4 h-40 rounded-[18px] border border-[rgba(105,224,218,0.2)] bg-[rgba(105,224,218,0.08)] p-4"
+        accessibilityRole="image"
+        accessibilityLabel="Weekly weight trend chart"
+      >
+        <Svg width="100%" height="100%" viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="none">
+          <Defs>
+            <SvgGradient id="weight-area" x1="0%" y1="0%" x2="0%" y2="100%">
+              <Stop offset="0%" stopColor={withAlpha('#37D0B4', 0.35)} />
+              <Stop offset="100%" stopColor={withAlpha('#37D0B4', 0.05)} />
+            </SvgGradient>
+            <SvgGradient id="weight-line" x1="0%" y1="0%" x2="100%" y2="0%">
+              <Stop offset="0%" stopColor="#37D0B4" />
+              <Stop offset="100%" stopColor="#42E2B8" />
+            </SvgGradient>
+          </Defs>
+
+          {[0.25, 0.5, 0.75].map((fraction) => (
+            <Line
+              key={fraction}
+              x1={0}
+              x2={CHART_WIDTH}
+              y1={CHART_HEIGHT * fraction}
+              y2={CHART_HEIGHT * fraction}
+              stroke={withAlpha('#111827', 0.08)}
+              strokeWidth={1}
             />
-          </Svg>
-        </View>
+          ))}
+
+          {areaPath ? <Path d={areaPath} fill="url(#weight-area)" /> : null}
+
+          {linePath ? (
+            <Path d={linePath} fill="none" stroke="url(#weight-line)" strokeWidth={3} strokeLinecap="round" />
+          ) : null}
+
+          {points.map((point, index) => (
+            <Circle
+              key={index}
+              cx={point.x}
+              cy={point.y}
+              r={index === points.length - 1 ? 5 : 3}
+              fill={index === points.length - 1 ? '#37D0B4' : '#FFFFFF'}
+              stroke="#37D0B4"
+              strokeWidth={index === points.length - 1 ? 0 : 2}
+            />
+          ))}
+        </Svg>
       </View>
+
+      <Text className="text-[13px] font-[Poppins_400Regular] leading-relaxed text-graphite">{subtext}</Text>
     </View>
   );
 };
-
-const createStyles = (tokens: ThemeTokens) =>
-  StyleSheet.create({
-    card: {
-      backgroundColor: tokens.colors.card,
-      borderRadius: tokens.radius.card,
-      padding: tokens.spacing.lg,
-      gap: tokens.spacing.md,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: tokens.colors.mutedBorder,
-      shadowColor: tokens.colors.shadow,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 1,
-      shadowRadius: 12,
-      elevation: 3,
-    },
-    headerRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    title: {
-      color: tokens.colors.brandNavy,
-      fontSize: tokens.typography.subheading,
-      fontFamily: tokens.typography.fontFamilyAlt,
-    },
-    link: {
-      paddingVertical: tokens.spacing.xs,
-    },
-    linkText: {
-      color: tokens.colors.textSubtle,
-      fontSize: tokens.typography.caption,
-      fontFamily: tokens.typography.fontFamilyMedium,
-    },
-    metricRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      gap: tokens.spacing.lg,
-    },
-    metricCopy: {
-      flex: 1,
-      gap: tokens.spacing.xs,
-    },
-    metricValue: {
-      fontSize: 36,
-      lineHeight: 42,
-      fontFamily: tokens.typography.fontFamilyAlt,
-      letterSpacing: -0.4,
-      color: tokens.colors.brandNavy,
-    },
-    metricCaption: {
-      color: tokens.colors.textSecondary,
-      fontSize: tokens.typography.body,
-      lineHeight: tokens.typography.body * 1.4,
-      fontFamily: tokens.typography.fontFamily,
-    },
-    sparklineWrapper: {
-      width: 120,
-      height: 48,
-      backgroundColor: 'rgba(144, 224, 239, 0.2)',
-      borderRadius: 12,
-      padding: tokens.spacing.xs,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: 'rgba(0, 119, 182, 0.24)',
-    },
-  });
 
 export default WeeklyChangeCard;

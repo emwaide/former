@@ -1,8 +1,7 @@
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './Icon';
-import { useTheme } from '../theme';
 
 type TabKey = 'index' | 'trends' | 'log' | 'insights' | 'settings';
 
@@ -15,22 +14,14 @@ const iconMap: Record<TabKey, string> = {
 };
 
 export const BottomNav = ({ state, descriptors, navigation }: BottomTabBarProps) => {
-  const { tokens } = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
     <View
-      style={[
-        styles.container,
-        {
-          paddingBottom: Math.max(insets.bottom, 0),
-          backgroundColor: tokens.colors.card,
-          borderTopColor: tokens.colors.border,
-          shadowColor: tokens.colors.softShadow,
-        },
-      ]}
+      className="border-t border-[#E5EDF2] bg-surface shadow-soft"
+      style={{ paddingBottom: Math.max(insets.bottom, 0) }}
     >
-      <View style={styles.row}>
+      <View className="flex-row items-center justify-between px-[10px]">
         {state.routes.map((route, index) => {
           const isFocused = state.index === index;
           const { options } = descriptors[route.key];
@@ -38,7 +29,7 @@ export const BottomNav = ({ state, descriptors, navigation }: BottomTabBarProps)
             typeof options.tabBarLabel === 'string'
               ? options.tabBarLabel
               : options.title ?? route.name;
-          const iconName = iconMap[(route.name as TabKey) ?? 'dashboard'] ?? 'circle';
+          const iconName = iconMap[(route.name as TabKey) ?? 'index'] ?? 'circle';
 
           const onPress = () => {
             const event = navigation.emit({
@@ -58,8 +49,6 @@ export const BottomNav = ({ state, descriptors, navigation }: BottomTabBarProps)
             });
           };
 
-          const inactiveColor = `${tokens.colors.textSecondary}99`;
-
           return (
             <Pressable
               key={route.key}
@@ -68,33 +57,21 @@ export const BottomNav = ({ state, descriptors, navigation }: BottomTabBarProps)
               accessibilityState={isFocused ? { selected: true } : undefined}
               onPress={onPress}
               onLongPress={onLongPress}
-              style={styles.tab}
+              className="flex-1 items-center justify-center py-3"
             >
               {({ pressed }) => (
-                <View style={styles.tabContent}>
-                  <View
-                    style={[
-                      styles.indicator,
-                      {
-                        backgroundColor: tokens.colors.accentSecondary,
-                        opacity: isFocused ? 1 : 0,
-                      },
-                    ]}
-                  />
+                <View className="items-center justify-center">
+                  <View className={`mb-1.5 h-[3px] w-8 rounded-full bg-tealBright ${isFocused ? 'opacity-100' : 'opacity-0'}`} />
                   <Icon
                     name={iconName}
                     size={22}
-                    color={isFocused ? tokens.colors.accentSecondary : inactiveColor}
+                    color={isFocused ? '#42E2B8' : '#6B728099'}
                     accessibilityLabel={label}
                   />
                   <Text
-                    style={{
-                      marginTop: 2,
-                      color: isFocused ? tokens.colors.accentSecondary : inactiveColor,
-                      fontFamily: tokens.typography.fontFamilyMedium,
-                      fontSize: 12,
-                      opacity: pressed ? 0.8 : 1,
-                    }}
+                    className={`mt-0.5 text-[12px] font-[Poppins_500Medium] ${
+                      isFocused ? 'text-tealBright' : 'text-[#6B728099]'
+                    } ${pressed ? 'opacity-80' : 'opacity-100'}`}
                   >
                     {label}
                   </Text>
@@ -107,34 +84,3 @@ export const BottomNav = ({ state, descriptors, navigation }: BottomTabBarProps)
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 1,
-    shadowRadius: 16,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-  },
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-  },
-  tabContent: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  indicator: {
-    width: 32,
-    height: 3,
-    borderRadius: 999,
-    marginBottom: 6,
-  },
-});

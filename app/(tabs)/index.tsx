@@ -1,15 +1,15 @@
 import { useMemo } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
 import { HeroSection } from '../../components/dashboard/HeroSection';
-import { LogCTA } from '../../components/dashboard/LogCTA';
 import { WeeklyChangeCard } from '../../components/dashboard/WeeklyChangeCard';
 import { MetricsGrid } from '../../components/dashboard/MetricsGrid';
 import { StreakCard } from '../../components/dashboard/StreakCard';
 import { GuidanceCard } from '../../components/dashboard/GuidanceCard';
 import { EmptyState } from '../../components';
+import type { MetricTileProps } from '../../components/dashboard/MetricTile';
 
 import { useUser } from '../../hooks/useUser';
 import { useReadings } from '../../hooks/useReadings';
@@ -22,7 +22,6 @@ import {
 } from '../../utils/format';
 import { kgToLb } from '../../lib/metrics';
 import { Reading, UserProfile, UnitSystem } from '../../types/db';
-import { ThemeTokens, useTheme } from '../../theme';
 
 const toDateKey = (iso: string) => iso.split('T')[0];
 
@@ -41,31 +40,6 @@ const composeMomentumCaption = (previousWeight: string, date?: string) =>
 
 const clamp = (value: number, min = 0, max = 1) =>
   Math.max(min, Math.min(max, value));
-
-const withAlpha = (color: string, alpha: number) => {
-  if (color.startsWith('rgb')) {
-    const values = color
-      .replace(/rgba?\(/, '')
-      .replace(')', '')
-      .split(',')
-      .map((value) => parseFloat(value.trim()));
-    const [r = 0, g = 0, b = 0] = values.slice(0, 3);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  }
-  const sanitized = color.replace('#', '');
-  const expanded =
-    sanitized.length === 3
-      ? sanitized
-          .split('')
-          .map((char) => char + char)
-          .join('')
-      : sanitized;
-  const bigint = parseInt(expanded, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
 
 const buildLoggedDays = (readings: Reading[]): boolean[] => {
   const today = new Date();
@@ -117,11 +91,12 @@ const buildGuidance = (latest: Reading, previous: Reading | undefined): Guidance
 type DashboardMetric = {
   id: string;
   label: string;
-  valueLabel: string;
+  value: string;
+  unit: string;
   deltaLabel: string;
   metaLabel: string;
   accentColor: string;
-  progress: number;
+  icon: MetricTileProps['icon'];
   tone?: 'positive' | 'negative' | 'neutral';
 };
 
@@ -130,13 +105,17 @@ type DeltaResult = { text: string; tone: 'positive' | 'negative' | 'neutral' };
 const formatDeltaLabel = (
   value: number,
   unit: string,
-  positiveIsGood: boolean,
+  positiveChangeIsGood: boolean,
 ): DeltaResult => {
   if (Math.abs(value) < 0.1) {
     return { text: 'Holding steady vs start', tone: 'neutral' as const };
   }
   const direction = value < 0 ? 'Down' : 'Up';
-  const tone = value < 0 === positiveIsGood ? 'positive' : 'negative';
+  const isPositiveChange = value >= 0;
+  const tone =
+    (isPositiveChange && positiveChangeIsGood) || (!isPositiveChange && !positiveChangeIsGood)
+      ? 'positive'
+      : 'negative';
   const formattedUnit = unit ? ` ${unit}` : '';
   return {
     text: `${direction} ${Math.abs(value).toFixed(1)}${formattedUnit} since start`,
@@ -146,14 +125,18 @@ const formatDeltaLabel = (
 
 const formatPercentDeltaLabel = (
   value: number,
-  positiveIsGood: boolean,
+  positiveChangeIsGood: boolean,
   precision = 1,
 ): DeltaResult => {
   if (Math.abs(value) < 0.1) {
     return { text: 'Holding steady vs start', tone: 'neutral' as const };
   }
   const direction = value < 0 ? 'Down' : 'Up';
-  const tone = value < 0 === positiveIsGood ? 'positive' : 'negative';
+  const isPositiveChange = value >= 0;
+  const tone =
+    (isPositiveChange && positiveChangeIsGood) || (!isPositiveChange && !positiveChangeIsGood)
+      ? 'positive'
+      : 'negative';
   return {
     text: `${direction} ${Math.abs(value).toFixed(precision)} pts since start`,
     tone,
@@ -163,10 +146,9 @@ const formatPercentDeltaLabel = (
 const buildMetrics = (
   latest: Reading,
   first: Reading,
-  progressFraction: number,
   unit: UnitSystem,
-  tokens: ThemeTokens,
 ): DashboardMetric[] => {
+  const accentColor = '#37D0B4';
   const weightDelta = kgToPreferred(latest.weightKg - first.weightKg, unit);
   const weightUnit = unit === 'imperial' ? 'lb' : 'kg';
   const fatDelta = latest.bodyFatPct - first.bodyFatPct;
@@ -178,93 +160,137 @@ const buildMetrics = (
   const waterDelta = latest.bodyWaterPct - first.bodyWaterPct;
   const visceralDelta = latest.visceralFatIdx - first.visceralFatIdx;
 
-  const weightDeltaResult = formatDeltaLabel(weightDelta, weightUnit, true);
+  const weightDeltaResult = formatDeltaLabel(weightDelta, weightUnit, false);
   const muscleDeltaResult = formatDeltaLabel(muscleDelta, weightUnit, true);
-  const visceralDeltaResult = formatDeltaLabel(
-    visceralDelta,
-    '',
-    false,
-  );
-  const proteinDeltaResult = formatPercentDeltaLabel(
-    proteinDelta,
-    true,
-  );
+  const visceralDeltaResult = formatDeltaLabel(visceralDelta, 'level', false);
+  const proteinDeltaResult = formatPercentDeltaLabel(proteinDelta, true);
   const waterDeltaResult = formatPercentDeltaLabel(waterDelta, true);
   const fatDeltaResult = formatPercentDeltaLabel(fatDelta, false);
+
+  const weightBadge = Math.abs(weightDelta) < 0.1
+    ? 'Holding steady'
+    : `${weightDelta > 0 ? '+' : ''}${Math.abs(weightDelta).toFixed(1)} ${weightUnit}`;
+  const fatBadge = Math.abs(fatDelta) < 0.1
+    ? 'Holding steady'
+    : `${fatDelta > 0 ? '+' : ''}${Math.abs(fatDelta).toFixed(1)}%`;
+  const muscleBadge = Math.abs(muscleDelta) < 0.1
+    ? 'Holding steady'
+    : `${muscleDelta > 0 ? '+' : ''}${Math.abs(muscleDelta).toFixed(1)} ${weightUnit}`;
+  const proteinBadge = Math.abs(proteinDelta) < 0.1
+    ? 'Holding steady'
+    : `${proteinDelta > 0 ? '+' : ''}${Math.abs(proteinDelta).toFixed(1)}%`;
+  const waterBadge = Math.abs(waterDelta) < 0.1
+    ? 'Holding steady'
+    : `${waterDelta > 0 ? '+' : ''}${Math.abs(waterDelta).toFixed(1)}%`;
+  const visceralBadge = Math.abs(visceralDelta) < 0.1
+    ? 'Holding steady'
+    : `${visceralDelta > 0 ? '+' : ''}${Math.abs(visceralDelta).toFixed(0)} lvl`;
+
+  const currentWeightDisplay = formatWeight(latest.weightKg, unit);
+  const [weightValuePart, ...weightUnitParts] = currentWeightDisplay.split(' ');
+  const currentWeightValue = weightValuePart;
+  const currentWeightUnit = weightUnitParts.join(' ');
+
+  const currentMuscleDisplay = formatMass(latest.muscleMassKg, unit);
+  const [muscleValuePart, ...muscleUnitParts] = currentMuscleDisplay.split(' ');
+  const currentMuscleValue = muscleValuePart;
+  const currentMuscleUnit = muscleUnitParts.join(' ');
 
   return [
     {
       id: 'weight',
       label: 'Weight',
-      valueLabel: formatWeight(latest.weightKg, unit),
-      deltaLabel: weightDeltaResult.text,
-      metaLabel: `Start ${formatWeight(first.weightKg, unit)}`,
-      accentColor: tokens.colors.brandNavy,
-      progress: clamp(progressFraction),
+      value: currentWeightValue,
+      unit: currentWeightUnit,
+      deltaLabel: weightBadge,
+      metaLabel:
+        weightDeltaResult.tone === 'positive'
+          ? 'Consistent downward trend'
+          : weightDeltaResult.tone === 'negative'
+            ? 'Weight trending upward'
+            : 'Holding steady',
+      accentColor,
+      icon: 'trending-down',
       tone: weightDeltaResult.tone,
     },
     {
       id: 'bodyFat',
-      label: 'Body Fat %',
-      valueLabel: `${latest.bodyFatPct.toFixed(1)}%`,
-      deltaLabel: fatDeltaResult.text,
-      metaLabel: `Start ${first.bodyFatPct.toFixed(1)}%`,
-      accentColor: tokens.colors.danger,
-      progress: clamp(
-        first.bodyFatPct
-          ? 1 - latest.bodyFatPct / first.bodyFatPct
-          : 0.5,
-      ),
+      label: 'Body Fat',
+      value: latest.bodyFatPct.toFixed(1),
+      unit: '%',
+      deltaLabel: fatBadge,
+      metaLabel:
+        fatDeltaResult.tone === 'positive'
+          ? 'Healthy reduction rate'
+          : fatDeltaResult.tone === 'negative'
+            ? 'Slight increase — monitor'
+            : 'Stable vs start',
+      accentColor,
+      icon: 'percent',
       tone: fatDeltaResult.tone,
     },
     {
       id: 'muscle',
       label: 'Muscle Mass',
-      valueLabel: formatMass(latest.muscleMassKg, unit),
-      deltaLabel: muscleDeltaResult.text,
-      metaLabel: `Start ${formatMass(first.muscleMassKg, unit)}`,
-      accentColor: tokens.colors.success,
-      progress: clamp(
-        first.muscleMassKg
-          ? latest.muscleMassKg / first.muscleMassKg
-          : 0.5,
-      ),
+      value: currentMuscleValue,
+      unit: currentMuscleUnit,
+      deltaLabel: muscleBadge,
+      metaLabel:
+        muscleDeltaResult.tone === 'positive'
+          ? 'Building lean tissue'
+          : muscleDeltaResult.tone === 'negative'
+            ? 'Watch recovery this week'
+            : 'Maintaining lean mass',
+      accentColor,
+      icon: 'activity',
       tone: muscleDeltaResult.tone,
     },
     {
       id: 'protein',
-      label: 'Protein %',
-      valueLabel: `${latest.proteinPct.toFixed(1)}%`,
-      deltaLabel: proteinDeltaResult.text,
-      metaLabel: `Start ${first.proteinPct.toFixed(1)}%`,
-      accentColor: tokens.colors.accentSecondary,
-      progress: clamp(latest.proteinPct / 100),
+      label: 'Protein',
+      value: latest.proteinPct.toFixed(1),
+      unit: '%',
+      deltaLabel: proteinBadge,
+      metaLabel:
+        proteinDeltaResult.tone === 'positive'
+          ? 'Good protein retention'
+          : proteinDeltaResult.tone === 'negative'
+            ? 'Slight dip — add a serving'
+            : 'On track with intake',
+      accentColor,
+      icon: 'bar-chart-2',
       tone: proteinDeltaResult.tone,
     },
     {
       id: 'water',
-      label: 'Water %',
-      valueLabel: `${latest.bodyWaterPct.toFixed(1)}%`,
-      deltaLabel: waterDeltaResult.text,
-      metaLabel: `Start ${first.bodyWaterPct.toFixed(1)}%`,
-      accentColor: tokens.colors.accentSecondary,
-      progress: clamp(latest.bodyWaterPct / 100),
+      label: 'Water',
+      value: latest.bodyWaterPct.toFixed(1),
+      unit: '%',
+      deltaLabel: waterBadge,
+      metaLabel:
+        waterDeltaResult.tone === 'positive'
+          ? 'Well hydrated'
+          : waterDeltaResult.tone === 'negative'
+            ? 'Hydration dipped — add fluids'
+            : 'Hydration holding steady',
+      accentColor,
+      icon: 'droplet',
       tone: waterDeltaResult.tone,
     },
     {
       id: 'visceral',
       label: 'Visceral Fat',
-      valueLabel: latest.visceralFatIdx.toFixed(1),
-      deltaLabel: visceralDeltaResult.text
-        .replace(' since start', '')
-        .trim(),
-      metaLabel: `Start ${first.visceralFatIdx.toFixed(1)}`,
-      accentColor: tokens.colors.brandNavy,
-      progress: clamp(
-        1 -
-          latest.visceralFatIdx /
-            Math.max(first.visceralFatIdx, 20),
-      ),
+      value: latest.visceralFatIdx.toFixed(1),
+      unit: 'lvl',
+      deltaLabel: visceralBadge,
+      metaLabel:
+        visceralDeltaResult.tone === 'positive'
+          ? 'Improving core health'
+          : visceralDeltaResult.tone === 'negative'
+            ? 'Slight rise — stay mindful'
+            : 'Holding within range',
+      accentColor,
+      icon: 'shield',
       tone: visceralDeltaResult.tone,
     },
   ];
@@ -285,40 +311,34 @@ export const DashboardContent = ({
 }: DashboardContentProps) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { tokens } = useTheme();
-
-  const themed = useMemo(() => createStyles(tokens, insets), [tokens, insets]);
   const sorted = useMemo(() => sortReadingsDesc(readings), [readings]);
 
   if (loading) {
     return (
-      <View style={themed.loadingScreen}>
-        <ActivityIndicator
-          size="large"
-          color={tokens.colors.accentTertiary}
-        />
+      <View className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator size="large" color="#37D0B4" />
       </View>
     );
   }
 
   if (!user || sorted.length === 0) {
     return (
-      <View style={themed.gradientBackground}>
+      <View className="flex-1 bg-background">
         <ScrollView
-          contentContainerStyle={[
-            themed.scrollContainer,
-            { paddingTop: insets.top + tokens.spacing.xl },
-          ]}
+          className="flex-1"
+          contentContainerStyle={{
+            paddingTop: insets.top + 32,
+            paddingHorizontal: 24,
+            paddingBottom: 40,
+          }}
           showsVerticalScrollIndicator={false}
         >
-          <View style={themed.heroWrapper}>
-            <EmptyState
-              title="No readings yet"
-              description="Log your first entry to unlock weekly trends and insights."
-              actionLabel="Add first reading"
-              onAction={() => router.push('/(tabs)/log')}
-            />
-          </View>
+          <EmptyState
+            title="No readings yet"
+            description="Log your first entry to unlock weekly trends and insights."
+            actionLabel="Add first reading"
+            onAction={() => router.push('/(tabs)/log')}
+          />
         </ScrollView>
       </View>
     );
@@ -347,167 +367,74 @@ export const DashboardContent = ({
     analytics.weeklyChangeKg ?? 0,
     user.unitSystem,
   );
-
-  const previousWeightLabel = previous
-    ? formatWeight(previous.weightKg, user.unitSystem)
-    : currentWeightLabel;
-  const previousCheckInDate = previous
-    ? formatDate(previous.takenAt)
-    : undefined;
-
-  const weeklySubtext = composeMomentumCaption(
-    previousWeightLabel,
-    previousCheckInDate,
+  const weeklyChangeValue = analytics.weeklyChangeKg ?? 0;
+  const weeklyChangeSubtitle = composeMomentumCaption(
+    formatWeight(previous?.weightKg ?? latest.weightKg, user.unitSystem),
+    previous ? formatDate(previous.takenAt) : undefined,
   );
 
-  const weeklySeries = (analytics.weeklyActualKg ?? []).map((point) =>
-    kgToPreferred(point.weightKg, user.unitSystem),
-  );
-
-  const metrics = buildMetrics(
-    latest,
-    first,
-    progressFraction,
-    user.unitSystem,
-    tokens,
-  );
-
-  const loggedDays = buildLoggedDays(sorted);
-  const loggedCount = loggedDays.filter(Boolean).length;
-
+  const metrics = buildMetrics(latest, first, user.unitSystem);
   const guidance = buildGuidance(latest, previous);
+  const loggedDays = buildLoggedDays(sorted);
 
   return (
-    <View style={themed.gradientBackground}>
+    <View className="flex-1 bg-background">
       <ScrollView
-        style={{ flex: 1 }}
+        className="flex-1"
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
-        <View style={themed.heroSpacing}>
-          <HeroSection
-            name={user.name}
-            startLabel={startWeightLabel}
-            currentLabel={currentWeightLabel}
-            goalLabel={goalWeightLabel}
-            progressFraction={progressFraction}
-            topInset={insets.top}
-          />
-        </View>
+        <HeroSection
+          name={user.name}
+          startLabel={startWeightLabel}
+          currentLabel={currentWeightLabel}
+          goalLabel={goalWeightLabel}
+          progressFraction={progressFraction}
+          topInset={insets.top}
+        />
 
-        <View style={themed.sectionSpacing}>
-          <LogCTA onPress={() => router.push('/(tabs)/log')} />
-        </View>
+        <View className="px-6">
+          <View className="mt-6 flex-col gap-6">
+            <WeeklyChangeCard
+              changeLabel={weeklyChangeLabel}
+              changeValue={weeklyChangeValue}
+              subtext={weeklyChangeSubtitle}
+              data={(analytics.weeklySeries ?? []).map((point) => point.value)}
+            />
 
-        <View style={themed.sectionSpacing}>
-          <View style={themed.sectionHeaderRow}>
-            <Text style={themed.sectionHeaderText}>This week</Text>
-            <View style={themed.sectionHeaderRule} />
-          </View>
+            <MetricsGrid metrics={metrics} />
 
-          <WeeklyChangeCard
-            changeLabel={weeklyChangeLabel}
-            changeValue={analytics.weeklyChangeKg ?? 0}
-            subtext={weeklySubtext}
-            data={weeklySeries}
-          />
-        </View>
+            {guidance ? (
+              <GuidanceCard
+                message={guidance.message}
+                actionLabel={guidance.actionLabel}
+                onAction={guidance.actionLabel ? () => router.push('/(tabs)/log') : undefined}
+              />
+            ) : null}
 
-        <View style={themed.sectionSpacing}>
-          <MetricsGrid metrics={metrics.slice(0, 6)} showMore={metrics.length > 6} />
-        </View>
-
-        {guidance ? (
-          <View style={themed.sectionSpacing}>
-            <GuidanceCard
-              message={guidance.message}
-              actionLabel={guidance.actionLabel}
-              onAction={
-                guidance.actionLabel ? () => router.push('/(tabs)/log') : undefined
-              }
+            <StreakCard
+              loggedDays={loggedDays}
+              loggedCount={loggedDays.filter(Boolean).length}
+              onViewHistory={() => router.push('/(tabs)/trends')}
             />
           </View>
-        ) : null}
-
-        <View style={themed.sectionSpacing}>
-          <StreakCard
-            loggedDays={loggedDays}
-            loggedCount={Math.min(loggedCount, 7)}
-            onViewHistory={() => router.push('/(tabs)/trends')}
-          />
         </View>
-
-        <View style={{ height: 80 + Math.max(insets.bottom, 0) }} />
       </ScrollView>
     </View>
   );
 };
 
-export default function DashboardRoute() {
-  const { user, loading: loadingUser } = useUser();
-  const { readings, loading: loadingReadings } = useReadings(user?.id);
+export default function DashboardScreen() {
+  const { user, loading: userLoading } = useUser();
+  const { readings, loading: readingsLoading } = useReadings(user?.id);
   const analytics = useAnalytics(user, readings);
 
   return (
     <DashboardContent
-      loading={loadingUser || loadingReadings}
+      loading={userLoading || readingsLoading}
       user={user}
       readings={readings}
       analytics={analytics}
     />
   );
 }
-
-const createStyles = (tokens: ThemeTokens, insets: { top: number; bottom: number }) =>
-  StyleSheet.create({
-    gradientBackground: {
-      flex: 1,
-      backgroundColor: tokens.colors.background,
-    },
-    scrollContainer: {
-      marginHorizontal: tokens.spacing.md,
-      marginTop: tokens.spacing.sm,
-      marginBottom: tokens.spacing.lg + Math.max(insets.bottom, tokens.spacing.sm),
-      gap: tokens.spacing.xl,
-    },
-    loadingScreen: {
-      flex: 1,
-      backgroundColor: tokens.colors.background,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    heroWrapper: {
-      borderRadius: 44,
-      backgroundColor: tokens.colors.card,
-      paddingBottom: tokens.spacing.lg,
-      shadowColor: tokens.colors.shadow,
-      shadowOpacity: 1,
-      shadowRadius: 24,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 4,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: withAlpha(tokens.colors.mutedBorder, 0.5),
-      overflow: 'hidden',
-    },
-    heroSpacing: {
-      marginBottom: tokens.spacing.xl,
-    },
-    sectionSpacing: {
-      gap: tokens.spacing.sm,
-    },
-    sectionHeaderRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: tokens.spacing.sm,
-    },
-    sectionHeaderText: {
-      color: tokens.colors.brandNavy,
-      fontSize: 16,
-      fontFamily: tokens.typography.fontFamilyAlt,
-      letterSpacing: -0.02,
-    },
-    sectionHeaderRule: {
-      flex: 1,
-      height: 1,
-      backgroundColor: withAlpha(tokens.colors.accentSecondary, 0.2),
-    },
-  });

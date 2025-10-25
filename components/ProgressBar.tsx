@@ -1,5 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { useTheme } from '../theme';
+import { Text, View } from 'react-native';
 
 type ProgressBarProps = {
   value: number; // 0-1
@@ -7,53 +6,16 @@ type ProgressBarProps = {
 };
 
 export const ProgressBar = ({ value, label }: ProgressBarProps) => {
-  const { tokens } = useTheme();
   const clamped = Math.max(0, Math.min(1, value));
 
   return (
     <View accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(clamped * 100) }}>
       {label ? (
-        <Text
-          style={{
-            marginBottom: 8,
-            color: tokens.colors.textSecondary,
-            fontFamily: tokens.typography.fontFamilyMedium,
-            fontSize: tokens.typography.caption,
-          }}
-        >
-          {label}
-        </Text>
+        <Text className="mb-2 text-[13px] font-[Poppins_600SemiBold] uppercase tracking-[1px] text-muted">{label}</Text>
       ) : null}
-      <View
-        style={[
-          styles.track,
-          {
-            backgroundColor: tokens.colors.mutedBorder,
-            borderRadius: tokens.radius.pill,
-          },
-        ]}
-      >
-        <View
-          style={[
-            styles.fill,
-            {
-              width: `${clamped * 100}%`,
-              backgroundColor: tokens.colors.accent,
-              borderRadius: tokens.radius.pill,
-            },
-          ]}
-        />
+      <View className="h-3 w-full overflow-hidden rounded-pill bg-[#E5EDF2]">
+        <View className="h-full rounded-pill bg-teal" style={{ width: `${clamped * 100}%` }} />
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  track: {
-    height: 12,
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-  },
-});
